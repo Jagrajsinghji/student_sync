@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-PageRoute buildRoute(Widget child) {
-  return PageRouteBuilder(pageBuilder: (c, _, __) {
-    return child;
-  },);
+Page<dynamic> buildPage(Widget child) {
+  return CustomTransitionPage(
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return child;
+    },
+  );
 }

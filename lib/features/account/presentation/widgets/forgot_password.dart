@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:student_sync/utils/constants/colors.dart';
+import 'package:go_router/go_router.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
+import 'package:student_sync/utils/theme/colors.dart';
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -20,8 +21,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     isEmailValid = false;
     if (value?.isEmpty ?? false) {
       return 'Email is required';
-    } else if (!(value?.isEmail() ?? true)) {
-      return 'Enter a valid email address';
+    } else if (!(value?.isValidInstitutionEmail() ?? true)) {
+      return 'Enter a valid institution email address';
     }
     isEmailValid = true;
     return null;
@@ -91,28 +92,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 bool isEnabled = isEmailValid;
                                 return Center(
                                   child: ElevatedButton(
-                                    style: ButtonStyle(
-                                      shape: MaterialStateProperty.all(
-                                          RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10))),
-                                      minimumSize: MaterialStateProperty.all(
-                                          const Size(200, 45)),
-                                      backgroundColor: MaterialStateProperty
-                                          .resolveWith<Color>(
-                                        (Set<MaterialState> states) {
-                                          if (states.contains(
-                                              MaterialState.disabled)) {
-                                            return Colors.grey;
-                                          }
-                                          return Colors.black;
-                                        },
-                                      ),
-                                    ),
-                                    onPressed : null,
+                                    onPressed: () {},
                                     child: const Text(
                                       'Send Email',
-                                      style: TextStyle(color: Colors.white),
                                     ),
                                   ),
                                 );
@@ -124,14 +106,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                           Center(
                               child: TextButton(
                             onPressed: () {
-                              Navigator.pushNamedAndRemoveUntil(context,
-                                  AppRouter.loginPage, (route) => false);
+                              context.go(AppRouter.loginPage);
                             },
-                            style: ButtonStyle(
-                                shape: MaterialStatePropertyAll(
-                                    RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10)))),
                             child: const Text(
                               "Back to Login",
                               style: TextStyle(color: blueColor),

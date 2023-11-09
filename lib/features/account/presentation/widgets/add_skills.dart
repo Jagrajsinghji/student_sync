@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:student_sync/features/account/models/skill.dart';
-import 'package:student_sync/utils/constants/colors.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
+import 'package:student_sync/utils/theme/colors.dart';
 
-class LearnSkills extends StatefulWidget {
-  const LearnSkills({super.key});
+class AddSkills extends StatefulWidget {
+  const AddSkills({super.key});
 
   @override
-  State<LearnSkills> createState() => _LearnSkillsState();
+  State<AddSkills> createState() => _AddSkillsState();
 }
 
-class _LearnSkillsState extends State<LearnSkills> {
+class _AddSkillsState extends State<AddSkills> {
   var skills = <Skill>[
-    Skill(id: "1", name: "Painting"),
+    Skill(id: "1", name: "🖌️Painting"),
     Skill(id: "2", name: "Cooking"),
     Skill(id: "3", name: "Guitar"),
     Skill(id: "4", name: "Gardening"),
@@ -36,7 +36,7 @@ class _LearnSkillsState extends State<LearnSkills> {
                   ),
                   const Align(
                       alignment: Alignment.centerLeft,
-                      child: Text("Learn Some Skills ",
+                      child: Text("Add Your Skills",
                           style: TextStyle(
                             fontSize: 35,
                             fontWeight: FontWeight.w900,
@@ -45,8 +45,8 @@ class _LearnSkillsState extends State<LearnSkills> {
                     height: 25,
                   ),
                   const Text(
-                      "Choose your interests and connect with people who are good at what you wanna learn. ",
-                      style: TextStyle(fontSize: 16)),
+                      "Show people what skills you got and help them in learning what you are good at.",
+                      style: TextStyle(fontSize: 14)),
                   const SizedBox(
                     height: 25,
                   ),
@@ -93,7 +93,7 @@ class _LearnSkillsState extends State<LearnSkills> {
                 style: ButtonStyle(
                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10))),
-                  minimumSize: MaterialStateProperty.all(const Size(160, 45)),
+                  minimumSize: MaterialStateProperty.all(const Size(200, 45)),
                   backgroundColor: MaterialStateProperty.resolveWith<Color>(
                     (Set<MaterialState> states) {
                       if (states.contains(MaterialState.disabled)) {
@@ -104,8 +104,7 @@ class _LearnSkillsState extends State<LearnSkills> {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRouter.home, (route) => false);
+                  Navigator.of(context).pushNamed(AppRouter.learnSkills);
                 },
                 child: const Text(
                   'Continue',
@@ -113,7 +112,7 @@ class _LearnSkillsState extends State<LearnSkills> {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

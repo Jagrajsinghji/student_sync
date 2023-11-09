@@ -1,5 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:student_sync/utils/constants/colors.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:student_sync/features/account/models/institution.dart';
+import 'package:student_sync/features/account/services/account_service.dart';
+import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 
@@ -25,77 +32,25 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isPasswordMatching = false;
   bool showPassword = false;
   bool showConfirmPassword = false;
+  bool isLoading = false;
+  final listOfInstitutes = <Institution>[];
 
-  void _onClickSignUp() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Validation passed, do something with the email and password
-      String email = _emailController.text;
-      String password = _passwordController.text;
-
-      Navigator.of(context).pushReplacementNamed(AppRouter.verifyEmailPage);
-    }
-  }
-
-  String? _validateEmail(String? value) {
-    isEmailValid = false;
-    if (value?.isEmpty ?? false) {
-      return 'Email is required';
-    } else if (!(value?.isEmail() ?? true)) {
-      return 'Enter a valid email address';
-    }
-    isEmailValid = true;
-    return null;
-  }
-
-  String? _validatePassword(String? password) {
-    String msg = "Weak password";
-
-    const specialCharacters = r'!@#$%^&*()_-+={[]};:<>,.?/';
-
-    hasLetters = false;
-    hasNumbers = false;
-    hasSpecialCharacters = false;
-    isPasswordStrong = false;
-
-    for (var char in (password?.runes ?? <int>[])) {
-      final character = String.fromCharCode(char);
-      if (RegExp(r'[a-zA-Z]').hasMatch(character)) {
-        hasLetters = true;
-      } else if (RegExp(r'[0-9]').hasMatch(character)) {
-        hasNumbers = true;
-      } else if (specialCharacters.contains(character)) {
-        hasSpecialCharacters = true;
-      }
-    }
-    if ((password?.length ?? 0) < 8) {
-      return msg;
-    } else if (hasLetters && hasNumbers && hasSpecialCharacters) {
-      isPasswordStrong = true;
-      return null;
-    } else if (hasLetters && hasNumbers) {
-      return msg;
-    } else {
-      return msg;
-    }
-  }
-
-  String? _validateConfirmPassword(String? password) {
-    isPasswordMatching = false;
-    if (_passwordController.text != password) {
-      return "Passwords does not match";
-    }
-    isPasswordMatching = true;
-    return null;
+  @override
+  void initState() {
+    super.initState();
+    _getAllInstitutes();
   }
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).requestFocus(FocusNode());
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
+        backgroundColor: theme.colorScheme.background,
         body: Padding(
           padding: const EdgeInsets.only(left: 20.0, right: 20),
           child: ListView(
@@ -148,7 +103,12 @@ class _SignUpPageState extends State<SignUpPage> {
                                 });
                               },
                               icon: Image.asset(
-                                  "assets/${showPassword ? "hide" : "show"}.png",height: 25,))),
+                                showPassword
+                                    ? Assets.hidePasswordPNG
+                                    : Assets.showPasswordPNG,
+                                color: theme.primaryColor,
+                                height: 25,
+                              ))),
                       validator: _validatePassword,
                       obscureText: !showPassword,
                     ),
@@ -156,8 +116,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     TextFormField(
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       controller: _confirmPasswordController,
-                      decoration:  InputDecoration(
-                        hintText: "Confirm Password",
+                      decoration: InputDecoration(
+                          hintText: "Confirm Password",
                           suffixIcon: IconButton(
                               onPressed: () {
                                 setState(() {
@@ -165,7 +125,12 @@ class _SignUpPageState extends State<SignUpPage> {
                                 });
                               },
                               icon: Image.asset(
-                                "assets/${showConfirmPassword ? "hide" : "show"}.png",height: 25,))),
+                                showConfirmPassword
+                                    ? Assets.hidePasswordPNG
+                                    : Assets.showPasswordPNG,
+                                height: 25,
+                                color: theme.primaryColor,
+                              ))),
                       obscureText: !showConfirmPassword,
                       validator: _validateConfirmPassword,
                     ),
@@ -235,32 +200,19 @@ class _SignUpPageState extends State<SignUpPage> {
                                               isPasswordMatching;
                                           return Center(
                                             child: ElevatedButton(
-                                              style: ButtonStyle(
-                                                shape: MaterialStateProperty
-                                                    .all(RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10))),
-                                                minimumSize:
-                                                    MaterialStateProperty.all(
-                                                        const Size(200, 45)),
-                                                backgroundColor:
-                                                    MaterialStateProperty
-                                                        .resolveWith<Color>(
-                                                  (Set<MaterialState> states) {
-                                                    if (states.contains(
-                                                        MaterialState
-                                                            .disabled)) {
-                                                      return Colors.grey;
-                                                    }
-                                                    return Colors.black;
-                                                  },
-                                                ),
-                                              ),
                                               onPressed: isEnabled
                                                   ? _onClickSignUp
                                                   : null,
-                                              child: const Text('Sign Up',style: TextStyle(color: Colors.white),),
+                                              child: isLoading
+                                                  ? LoadingAnimationWidget
+                                                      .flickr(
+                                                          leftDotColor: theme
+                                                              .primaryColor,
+                                                          rightDotColor: theme
+                                                              .colorScheme
+                                                              .secondary,
+                                                          size: 30)
+                                                  : const Text('Sign Up'),
                                             ),
                                           );
                                         });
@@ -272,17 +224,10 @@ class _SignUpPageState extends State<SignUpPage> {
                               Center(
                                   child: TextButton(
                                 onPressed: () {
-                                  Navigator.of(context)
-                                      .pushNamed(AppRouter.loginPage);
+                                  context.go(AppRouter.loginPage);
                                 },
-                                style: ButtonStyle(
-                                    shape: MaterialStatePropertyAll(
-                                        RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10)))),
                                 child: const Text(
                                   "Already have an account? Login",
-                                  style: TextStyle(color: blueColor),
                                 ),
                               ))
                             ],
@@ -299,5 +244,106 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       ),
     );
+  }
+
+  void _getAllInstitutes() {
+    GetIt.I<AccountService>().getAllInstitutions().then((value) => setState(() {
+          listOfInstitutes.clear();
+          listOfInstitutes.addAll(value);
+        }));
+  }
+
+  void _onClickSignUp() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      // Validation passed, do something with the email and password
+      String email = _emailController.text;
+      String password = _passwordController.text;
+
+      try {
+        if (mounted) {
+          setState(() {
+            isLoading = true;
+          });
+        }
+        var response = await GetIt.I<AccountService>()
+            .registerUser(email: email, password: password);
+        if (response.statusCode == 201) {
+          // user created
+          if (mounted) {
+            context.go("${AppRouter.verifyEmailPage}/$email");
+          }
+        } else {
+          debugPrint(response.statusCode.toString());
+          debugPrint(response.statusMessage.toString());
+          Fluttertoast.showToast(msg: "${response.data}");
+        }
+      } on DioException catch (e, s) {
+        debugPrintStack(stackTrace: s, label: e.toString());
+        Fluttertoast.showToast(
+            msg: "Error while registering the user. ${e.response?.data}");
+      } on Exception catch (e, s) {
+        debugPrintStack(stackTrace: s, label: e.toString());
+        Fluttertoast.showToast(
+            msg: "Error while registering the user. ${e.toString()}");
+      } finally {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  String? _validateEmail(String? value) {
+    isEmailValid = false;
+    if (value?.isEmpty ?? false) {
+      return 'Email is required';
+    } else if (!(value?.isValidInstitutionEmail() ?? true)) {
+      return 'Enter a valid institution email address';
+    }
+    isEmailValid = true;
+    return null;
+  }
+
+  String? _validatePassword(String? password) {
+    String msg = "Weak password";
+
+    const specialCharacters = r'!@#$%^&*()_-+={[]};:<>,.?/';
+
+    hasLetters = false;
+    hasNumbers = false;
+    hasSpecialCharacters = false;
+    isPasswordStrong = false;
+
+    for (var char in (password?.runes ?? <int>[])) {
+      final character = String.fromCharCode(char);
+      if (RegExp(r'[a-zA-Z]').hasMatch(character)) {
+        hasLetters = true;
+      } else if (RegExp(r'[0-9]').hasMatch(character)) {
+        hasNumbers = true;
+      } else if (specialCharacters.contains(character)) {
+        hasSpecialCharacters = true;
+      }
+    }
+    if ((password?.length ?? 0) < 8) {
+      return msg;
+    } else if (hasLetters && hasNumbers && hasSpecialCharacters) {
+      isPasswordStrong = true;
+      return null;
+    } else if (hasLetters && hasNumbers) {
+      return msg;
+    } else {
+      return msg;
+    }
+  }
+
+  String? _validateConfirmPassword(String? password) {
+    isPasswordMatching = false;
+    if (_passwordController.text != password) {
+      return "Passwords does not match";
+    }
+    isPasswordMatching = true;
+    return null;
   }
 }

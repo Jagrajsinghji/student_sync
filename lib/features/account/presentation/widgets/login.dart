@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:student_sync/utils/constants/colors.dart';
+import 'package:go_router/go_router.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 
@@ -17,6 +19,8 @@ class _LoginPageState extends State<LoginPage> {
 
   bool isPasswordValid = false;
   bool isEmailValid = false;
+  bool showPassword = false;
+  bool isLoading = false;
 
   void _onClickLogin() {
     if (_formKey.currentState?.validate() ?? false) {
@@ -24,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
       String email = _emailController.text;
       String password = _passwordController.text;
 
-      Navigator.of(context).pushReplacementNamed(AppRouter.home);
+      context.go(AppRouter.home);
     }
   }
 
@@ -32,8 +36,8 @@ class _LoginPageState extends State<LoginPage> {
     isEmailValid = false;
     if (value?.isEmpty ?? false) {
       return 'Email is required';
-    } else if (!(value?.isEmail() ?? true)) {
-      return 'Enter a valid email address';
+    } else if (!(value?.isValidInstitutionEmail() ?? true)) {
+      return 'Enter a valid institution email address';
     }
     isEmailValid = true;
     return null;
@@ -51,6 +55,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).requestFocus(FocusNode());
@@ -100,27 +105,32 @@ class _LoginPageState extends State<LoginPage> {
                     TextFormField(
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       controller: _passwordController,
-                      decoration: const InputDecoration(
-                        hintText: "Password",
-                      ),
-                      obscureText: true,
+                      obscureText: !showPassword,
                       validator: _validatePassword,
+                      decoration: InputDecoration(
+                          hintText: "Password",
+                          suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  showPassword = !showPassword;
+                                });
+                              },
+                              icon: Image.asset(
+                                showPassword
+                                    ? Assets.hidePasswordPNG
+                                    : Assets.showPasswordPNG,
+                                color: theme.primaryColor,
+                                height: 25,
+                              ))),
                     ),
                     Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
-                            Navigator.of(context)
-                                .pushNamed(AppRouter.forgotPassword);
+                            context.go(AppRouter.forgotPassword);
                           },
-                          style: ButtonStyle(
-                              shape: MaterialStatePropertyAll(
-                                  RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(10)))),
                           child: const Text(
                             "Forgot Password?",
-                            style: TextStyle(color: blueColor),
                           ),
                         )),
                     const SizedBox(height: 20),
@@ -141,32 +151,18 @@ class _LoginPageState extends State<LoginPage> {
                                         isPasswordValid & isEmailValid;
                                     return Center(
                                       child: ElevatedButton(
-                                        style: ButtonStyle(
-                                          shape: MaterialStateProperty.all(
-                                              RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10))),
-                                          minimumSize:
-                                              MaterialStateProperty.all(
-                                                  const Size(200, 45)),
-                                          backgroundColor: MaterialStateProperty
-                                              .resolveWith<Color>(
-                                            (Set<MaterialState> states) {
-                                              if (states.contains(
-                                                  MaterialState.disabled)) {
-                                                return Colors.grey;
-                                              }
-                                              return Colors.black;
-                                            },
-                                          ),
-                                        ),
                                         onPressed:
                                             isEnabled ? _onClickLogin : null,
-                                        child: const Text(
-                                          'Login',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
+                                        child: isLoading
+                                            ? LoadingAnimationWidget.flickr(
+                                                leftDotColor:
+                                                    theme.primaryColor,
+                                                rightDotColor:
+                                                    theme.colorScheme.secondary,
+                                                size: 30)
+                                            : const Text(
+                                                'Login',
+                                              ),
                                       ),
                                     );
                                   }),
@@ -177,17 +173,10 @@ class _LoginPageState extends State<LoginPage> {
                               Center(
                                   child: TextButton(
                                 onPressed: () {
-                                  Navigator.pushNamedAndRemoveUntil(context,
-                                      AppRouter.signUpPage, (route) => false);
+                                  context.go(AppRouter.signUpPage);
                                 },
-                                style: ButtonStyle(
-                                    shape: MaterialStatePropertyAll(
-                                        RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10)))),
                                 child: const Text(
                                   "No account with us? Register",
-                                  style: TextStyle(color: blueColor),
                                 ),
                               ))
                             ],

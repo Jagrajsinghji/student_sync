@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:student_sync/utils/constants/assets.dart';
 
 class NotificationOB extends StatefulWidget {
   const NotificationOB({super.key});
@@ -19,28 +20,30 @@ class _NotificationOBState extends State<NotificationOB> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xffd1e0e5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset("assets/notifications.jpg"),
-          const Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Text("Feel Connected",
-                style: TextStyle(fontSize: 45, fontWeight: FontWeight.bold)),
+    var theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(Assets.notificationsPNG),
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text("Feel Connected",
+              style: TextStyle(
+                  fontSize: 45,
+                  fontWeight: FontWeight.bold,
+                  color: theme.primaryColor)),
+        ),
+        const Padding(
+          padding: EdgeInsets.all(30.0),
+          child: Text(
+            "Notifications and Chats to get latest updates and feel connected with the community.",
+            style:
+                TextStyle(fontWeight: FontWeight.w400, color: Colors.blueGrey),
+            textAlign: TextAlign.center,
           ),
-          const Padding(
-            padding: EdgeInsets.all(30.0),
-            child: Text(
-              "Notifications and Chats to get latest updates and feel connected with the community.",
-              style: TextStyle(fontWeight: FontWeight.w400, color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-          )
-        ],
-      ),
+        )
+      ],
     );
   }
 

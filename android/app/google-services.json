@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1075760853204",
+    "project_id": "studentsync624",
+    "storage_bucket": "studentsync624.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075760853204:android:f5fe3300112e5780340b41",
+        "android_client_info": {
+          "package_name": "com.capstone.student_sync"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIq1s5wWrchG0SucQKLaCVJSXe2fWwCrg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

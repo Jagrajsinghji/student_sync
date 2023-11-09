@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
-import 'package:student_sync/utils/constants/colors.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
+import 'package:student_sync/utils/theme/colors.dart';
 
 class TellUsMore extends StatefulWidget {
   const TellUsMore({super.key});
@@ -317,9 +317,12 @@ class _TellUsMoreState extends State<TellUsMore> {
                             },
                           ),
                         ),
-                        onPressed: isEnabled ? () {
-                          Navigator.of(context).pushReplacementNamed(AppRouter.addSkills);
-                        } : null,
+                        onPressed: isEnabled
+                            ? () {
+                                Navigator.of(context)
+                                    .pushReplacementNamed(AppRouter.addSkills);
+                              }
+                            : null,
                         child: const Text(
                           'Continue',
                           style: TextStyle(color: Colors.white),

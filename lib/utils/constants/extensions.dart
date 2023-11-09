@@ -5,6 +5,12 @@ extension AppString on String {
         multiLine: false,
       ).hasMatch(this);
 
+  bool isValidInstitutionEmail() {
+    //todo: add validation for institution domain
+    String? domain = split("@").lastOrNull;
+    return isEmail() && domain != null && domain.isNotEmpty;
+  }
+
   bool isCanadianPhoneNumber() => RegExp(
         r'^(\(\+[0-9]{2}\))?([0-9]{3}-?)?([0-9]{3})\-?([0-9]{4})(\/[0-9]{4})?$',
       ).hasMatch(this);

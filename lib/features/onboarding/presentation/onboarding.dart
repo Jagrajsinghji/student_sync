@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:onboarding_animation/onboarding_animation.dart';
 import 'package:student_sync/features/onboarding/presentation/letssync_ob.dart';
@@ -16,12 +15,14 @@ class _OnboardingState extends State<Onboarding> {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    return const Scaffold(
+    return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       body: OnBoardingAnimation(
-        pages: [NotificationOB(), LocationOB(), LetsSyncOB()],
+        pages: const [NotificationOB(), LocationOB(), LetsSyncOB()],
         indicatorPaintStyle: PaintingStyle.stroke,
         indicatorWormType: WormType.underground,
         indicatorSwapType: SwapType.yRotation,
+        indicatorActiveDotColor: theme.primaryColor,
       ),
     );
   }

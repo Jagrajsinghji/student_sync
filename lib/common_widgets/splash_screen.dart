@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:student_sync/utils/constants/colors.dart';
+import 'package:go_router/go_router.dart';
+import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     timer = Timer(splashDuration, () {
-      Navigator.of(context).pushReplacementNamed(AppRouter.onboarding);
+      context.go(AppRouter.onboarding);
     });
   }
 
@@ -31,6 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     return Scaffold(
       body: TweenAnimationBuilder(
         builder: (_, value, __) {
@@ -43,14 +45,14 @@ class _SplashScreenState extends State<SplashScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      "assets/icon.png",
+                      Assets.iconPng,
                       height: imageSize,
                     ),
                     Padding(
                       padding: const EdgeInsets.all(20.0),
                       child: Text("Student Sync",
                           style: TextStyle(
-                              fontSize: 35 * value, color: blueColor)),
+                              fontSize: 35 * value, color: theme.primaryColor)),
                     )
                   ],
                 ),
