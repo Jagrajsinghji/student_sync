@@ -11,13 +11,15 @@ class Institution {
   final String province;
   final String city;
   final String country;
+  final String domainName;
 
   Institution._(
       {required this.id,
       required this.name,
       required this.province,
       required this.city,
-      required this.country});
+      required this.country,
+      required this.domainName});
 
   factory Institution.fromMap(Map data) {
     return Institution._(
@@ -25,6 +27,12 @@ class Institution {
         name: data['name'],
         province: data['province'],
         city: data['city'],
-        country: data['country']);
+        country: data['country'],
+        domainName: data['domainName']);
+  }
+
+  @override
+  String toString() {
+    return id;
   }
 }

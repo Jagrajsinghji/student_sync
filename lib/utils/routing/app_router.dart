@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_sync/common_widgets/not_found_page.dart';
 import 'package:student_sync/common_widgets/splash_screen.dart';
-import 'package:student_sync/features/account/presentation/widgets/add_skills.dart';
-import 'package:student_sync/features/account/presentation/widgets/forgot_password.dart';
-import 'package:student_sync/features/account/presentation/widgets/learn_skills.dart';
-import 'package:student_sync/features/account/presentation/widgets/login.dart';
-import 'package:student_sync/features/account/presentation/widgets/sign_up.dart';
-import 'package:student_sync/features/account/presentation/widgets/tell_us_more.dart';
-import 'package:student_sync/features/account/presentation/widgets/verify_email.dart';
+import 'package:student_sync/features/account/presentation/screens/add_skills.dart';
+import 'package:student_sync/features/account/presentation/screens/forgot_password.dart';
+import 'package:student_sync/features/account/presentation/screens/learn_skills.dart';
+import 'package:student_sync/features/account/presentation/screens/login.dart';
+import 'package:student_sync/features/account/presentation/screens/sign_up.dart';
+import 'package:student_sync/features/account/presentation/screens/student_id_capture.dart';
+import 'package:student_sync/features/account/presentation/screens/tell_us_more.dart';
+import 'package:student_sync/features/account/presentation/screens/verify_email.dart';
 import 'package:student_sync/features/main_app/presentation/home.dart';
 import 'package:student_sync/features/onboarding/presentation/onboarding.dart';
-import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/route_builder.dart';
 
 abstract class AppRouter {
@@ -25,6 +25,7 @@ abstract class AppRouter {
   static const String tellUsMore = "/tellUsMore";
   static const String home = "/home";
   static const String notFound = "/notFound";
+  static const String studentIdCapture = "/studentIdCapture";
 
   static final RouterConfig<Object>? routerConfig = _getRouterConfig();
 
@@ -47,25 +48,17 @@ abstract class AppRouter {
             path: forgotPassword,
             pageBuilder: (_, __) => buildPage(const ForgotPassword())),
         GoRoute(
-            path: "$verifyEmailPage/:email",
-            redirect: (_, state) {
-              return (state.pathParameters['email']
-                          ?.isValidInstitutionEmail() ??
-                      false)
-                  ? null
-                  : notFound;
-            },
-            pageBuilder: (_, state) {
-              return buildPage(VerifyEmail(
-                email: state.pathParameters['email'].toString(),
-              ));
-            }),
+            path: verifyEmailPage,
+            pageBuilder: (_, __) => buildPage(const VerifyEmail())),
         GoRoute(
             path: tellUsMore,
-            pageBuilder: (_, __) => buildPage(const TellUsMore())),
+            pageBuilder: (_, state) => buildPage(const TellUsMore())),
+        GoRoute(
+            path: studentIdCapture,
+            pageBuilder: (_, __) => buildPage(const StudentIdCapture())),
         GoRoute(
             path: addSkills,
-            pageBuilder: (_, __) => buildPage(const AddSkills())),
+            pageBuilder: (_, state) => buildPage(const AddSkills())),
         GoRoute(
             path: learnSkills,
             pageBuilder: (_, __) => buildPage(const LearnSkills())),

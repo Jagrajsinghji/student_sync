@@ -30,7 +30,7 @@ class _NotificationOBState extends State<NotificationOB> {
           padding: const EdgeInsets.all(20.0),
           child: Text("Feel Connected",
               style: TextStyle(
-                  fontSize: 45,
+                  fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: theme.primaryColor)),
         ),

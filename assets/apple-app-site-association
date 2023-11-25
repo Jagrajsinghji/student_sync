@@ -1,0 +1,11 @@
+{
+  "applinks": {
+      "apps": [],
+      "details": [
+      {
+        "appID": "NV283NK56Y.com.capstone.studentSync",
+        "paths": ["*"]
+      }
+    ]
+  }
+}

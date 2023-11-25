@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
+import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
 import 'package:student_sync/features/account/services/account_service.dart';
+import 'package:student_sync/utils/constants/enums.dart';
+import 'package:student_sync/utils/routing/app_router.dart';
 
 class VerifyEmail extends StatefulWidget {
-  const VerifyEmail({super.key, required this.email});
-
-  final String email;
+  const VerifyEmail({super.key});
 
   @override
   State<VerifyEmail> createState() => _VerifyEmailState();
@@ -81,7 +83,16 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 },
               ),
             ),
-            Lottie.asset("assets/verifyEmailLottie.json")
+            Container(
+                color: Colors.transparent,
+                child: Lottie.asset("assets/verifyEmailLottie.json")),
+            ElevatedButton(
+                onPressed: () {
+                  context.go(AppRouter.tellUsMore);
+                  GetIt.I<AccountController>().updateUserOnboardingState(
+                      UserOnboardingState.verifiedEmail);
+                },
+                child: const Text("Continue"))
           ],
         ),
       ),
@@ -89,7 +100,11 @@ class _VerifyEmailState extends State<VerifyEmail> {
   }
 
   void _sendVerificationEmail() {
-    GetIt.I<AccountService>().sendVerificationEmail(widget.email).then((value) {
+    var accountController = GetIt.I<AccountController>();
+    String? email = accountController.getSavedUserEmail();
+    throwIf(email == null,
+        "No email saved for the user. Restart from onboarding or login");
+    GetIt.I<AccountService>().sendVerificationEmail(email!).then((value) {
       _timerStream.sink.add(_timerDuration);
       _activateResendTimer();
     });

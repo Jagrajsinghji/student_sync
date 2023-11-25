@@ -28,7 +28,7 @@ class _LocationOBState extends State<LocationOB> {
           padding: const EdgeInsets.all(20.0),
           child: Text("Know Everyone",
               style: TextStyle(
-                  fontSize: 50,
+                  fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: theme.primaryColor)),
         ),

@@ -12,4 +12,5 @@ class Assets {
 
   static const String hidePasswordPNG = "$_basePath/hide.png";
   static const String showPasswordPNG = "$_basePath/show.png";
+  static const String sendNewMessage = "$_basePath/sendNewMessage.png";
 }

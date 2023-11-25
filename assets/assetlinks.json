@@ -1,0 +1,26 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.capstone.student_sync",
+      "sha256_cert_fingerprints": [
+        "FE:3C:F1:1A:E2:3F:DC:65:0E:7B:24:9C:BD:BA:D8:43:A3:EF:23:66:29:13:6A:A6:08:D6:B8:34:76:DA:DC:E8"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.capstone.student_sync",
+      "sha256_cert_fingerprints": [
+        "AD:CA:F2:7A:10:90:D0:69:0E:B4:4A:0F:24:F0:EA:8A:D7:FB:F9:42:AB:0B:A9:93:5D:74:6D:72:8C:8B:DA:85"
+      ]
+    }
+  }
+]

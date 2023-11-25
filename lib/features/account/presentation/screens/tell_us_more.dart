@@ -1,9 +1,18 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
+import 'package:student_sync/features/account/models/institution.dart';
+import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
+import 'package:student_sync/features/account/services/account_service.dart';
+import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 import 'package:student_sync/utils/theme/colors.dart';
@@ -19,16 +28,16 @@ class _TellUsMoreState extends State<TellUsMore> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _studentController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _postalController = TextEditingController();
   File? _pickedImage;
   String? selectedProvince;
+  Institution? selectedInstitute;
   bool isNameValid = false;
   bool isPhoneValid = false;
-  bool isStudentIdValid = false;
   bool isCityValid = false;
   bool isPostalValid = false;
+  bool isLoading = false;
 
   final List<String> provinceList = [
     "Alberta",
@@ -45,40 +54,33 @@ class _TellUsMoreState extends State<TellUsMore> {
     "Saskatchewan",
     "Yukon",
   ];
+  final listOfInstitutes = <Institution>[];
 
   void _pickImage() {
     showDialog<ImageSource>(
       context: context,
       builder: (context) => AlertDialog(
         content: const Text(
-          'Choose image source',
+          'Choose an image source',
           style: TextStyle(fontSize: 16),
         ),
         actions: [
-          ElevatedButton(
-            style: ButtonStyle(
-                shape: MaterialStatePropertyAll(
-                  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                backgroundColor: const MaterialStatePropertyAll(Colors.black)),
-            onPressed: () => Navigator.pop(context, ImageSource.camera),
-            child: const Text(
-              'Camera',
-              style: TextStyle(color: Colors.white),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context, ImageSource.camera),
+                child: const Text('Camera'),
+              ),
             ),
           ),
-          ElevatedButton(
-            style: ButtonStyle(
-                shape: MaterialStatePropertyAll(
-                  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                backgroundColor: const MaterialStatePropertyAll(Colors.black)),
-            onPressed: () => Navigator.pop(context, ImageSource.gallery),
-            child: const Text(
-              'Gallery',
-              style: TextStyle(color: Colors.white),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context, ImageSource.gallery),
+                child: const Text('Gallery'),
+              ),
             ),
           ),
         ],
@@ -96,11 +98,22 @@ class _TellUsMoreState extends State<TellUsMore> {
   @override
   void initState() {
     selectedProvince = provinceList[0];
+    _getAllInstitutes();
     super.initState();
+  }
+
+  void _getAllInstitutes() {
+    GetIt.I<AccountController>().getAllInstitutes().then((value) => mounted
+        ? setState(() {
+            listOfInstitutes.clear();
+            listOfInstitutes.addAll(value);
+          })
+        : null);
   }
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).requestFocus(FocusNode());
@@ -168,6 +181,7 @@ class _TellUsMoreState extends State<TellUsMore> {
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             controller: _nameController,
+                            keyboardType: TextInputType.name,
                             decoration: const InputDecoration(
                               hintText: "Name",
                             ),
@@ -184,6 +198,7 @@ class _TellUsMoreState extends State<TellUsMore> {
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             controller: _phoneController,
+                            keyboardType: TextInputType.phone,
                             decoration: const InputDecoration(
                               hintText: "Phone Number",
                             ),
@@ -197,26 +212,40 @@ class _TellUsMoreState extends State<TellUsMore> {
                             },
                           ),
                           const SizedBox(height: 10),
-                          TextFormField(
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
-                            controller: _studentController,
-                            decoration: const InputDecoration(
-                              hintText: "Student ID",
-                            ),
-                            validator: (String? id) {
-                              isStudentIdValid = id != null && id.length >= 5;
-                              if (!isStudentIdValid) {
-                                return "Invalid Student ID";
-                              }
-                              return null;
-                            },
-                          ),
+                          DropdownMenu(
+                              hintText: "Institute",
+                              onSelected: (inst) {
+                                setState(() {
+                                  selectedInstitute = inst;
+                                });
+                              },
+                              errorText: selectedInstitute == null
+                                  ? "Please select your institute"
+                                  : null,
+                              trailingIcon: const Icon(Icons.arrow_drop_down),
+                              menuHeight: 200,
+                              inputDecorationTheme: const InputDecorationTheme(
+                                  border: UnderlineInputBorder()),
+                              width: MediaQuery.of(context).size.width - 40,
+                              menuStyle: MenuStyle(
+                                  shape: MaterialStatePropertyAll(
+                                      RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10))),
+                                  side: const MaterialStatePropertyAll(
+                                      BorderSide(color: Colors.black))),
+                              dropdownMenuEntries: [
+                                ...listOfInstitutes.map((inst) {
+                                  return DropdownMenuEntry(
+                                      value: inst, label: inst.name);
+                                }).toList()
+                              ]),
                           const SizedBox(height: 10),
                           TextFormField(
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             controller: _cityController,
+                            keyboardType: TextInputType.text,
                             decoration: const InputDecoration(
                               hintText: "City",
                             ),
@@ -233,6 +262,7 @@ class _TellUsMoreState extends State<TellUsMore> {
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             controller: _postalController,
+                            keyboardType: TextInputType.text,
                             decoration: const InputDecoration(
                               hintText: "Postal Code",
                             ),
@@ -267,6 +297,8 @@ class _TellUsMoreState extends State<TellUsMore> {
                                               BorderRadius.circular(10))),
                                   side: const MaterialStatePropertyAll(
                                       BorderSide(color: Colors.black))),
+                              menuHeight: 300,
+                              requestFocusOnTap: false,
                               dropdownMenuEntries: [
                                 ...provinceList.map((pro) {
                                   return DropdownMenuEntry(
@@ -288,45 +320,28 @@ class _TellUsMoreState extends State<TellUsMore> {
                     values: [
                       _nameController,
                       _phoneController,
-                      _studentController,
                       _cityController,
                       _postalController,
                     ],
                     child: Builder(builder: (context) {
                       bool isEnabled = isNameValid &&
-                          isPhoneValid &&
-                          isStudentIdValid &&
-                          isCityValid &&
-                          isPostalValid &&
-                          selectedProvince != null &&
-                          _pickedImage != null;
+                              isPhoneValid &&
+                              isCityValid &&
+                              isPostalValid &&
+                              selectedProvince != null
+                          //&& _pickedImage != null
+                          ;
                       return ElevatedButton(
-                        style: ButtonStyle(
-                          shape: MaterialStateProperty.all(
-                              RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10))),
-                          minimumSize:
-                              MaterialStateProperty.all(const Size(200, 45)),
-                          backgroundColor:
-                              MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.disabled)) {
-                                return Colors.grey;
-                              }
-                              return Colors.black;
-                            },
-                          ),
-                        ),
-                        onPressed: isEnabled
-                            ? () {
-                                Navigator.of(context)
-                                    .pushReplacementNamed(AppRouter.addSkills);
-                              }
-                            : null,
-                        child: const Text(
-                          'Continue',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        onPressed:
+                            (isEnabled & !isLoading) ? _onClickContinue : null,
+                        child: isLoading
+                            ? LoadingAnimationWidget.flickr(
+                                leftDotColor: theme.primaryColor,
+                                rightDotColor: theme.colorScheme.secondary,
+                                size: 30)
+                            : const Text(
+                                'Continue',
+                              ),
                       );
                     }),
                   ),
@@ -347,5 +362,59 @@ class _TellUsMoreState extends State<TellUsMore> {
         builder: (_, value, __) {
           return valueListenableNestedBuilder(values: values, child: child);
         });
+  }
+
+  void _onClickContinue() async {
+    FocusScope.of(context).requestFocus(FocusNode());
+    if (_formKey.currentState?.validate() ?? false) {
+      try {
+        if (mounted) {
+          setState(() {
+            isLoading = true;
+          });
+        }
+        var accountController = GetIt.I<AccountController>();
+        String? userId = accountController.getSavedUserId();
+        throwIf(userId == null,
+            "No userId saved for the user. Restart from onboarding or login");
+        var response = await GetIt.I<AccountService>().updateUser(
+          userId: userId!,
+          name: _nameController.text,
+          city: _cityController.text,
+          country: "Canada",
+          institutionId: selectedInstitute?.id,
+          mobileNumber: _phoneController.text,
+          province: selectedProvince,
+        );
+        if (response.statusCode == 200) {
+          if (mounted) {
+            accountController
+                .updateUserOnboardingState(UserOnboardingState.registered);
+            context.go(AppRouter.studentIdCapture);
+          }
+        } else {
+          debugPrint(response.statusCode.toString());
+          debugPrint(response.statusMessage.toString());
+          Fluttertoast.showToast(
+              msg: "${response.data}", toastLength: Toast.LENGTH_LONG);
+        }
+      } on DioException catch (e, s) {
+        debugPrintStack(stackTrace: s, label: e.toString());
+        Fluttertoast.showToast(
+            msg: "Error while updating the user info. ${e.response?.data}",
+            toastLength: Toast.LENGTH_LONG);
+      } on Exception catch (e, s) {
+        debugPrintStack(stackTrace: s, label: e.toString());
+        Fluttertoast.showToast(
+            msg: "Error while updating the user info. ${e.toString()}",
+            toastLength: Toast.LENGTH_LONG);
+      } finally {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    }
   }
 }

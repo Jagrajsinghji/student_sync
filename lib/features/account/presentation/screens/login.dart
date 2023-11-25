@@ -1,7 +1,13 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
+import 'package:student_sync/features/account/services/account_service.dart';
 import 'package:student_sync/utils/constants/assets.dart';
+import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 
@@ -22,13 +28,68 @@ class _LoginPageState extends State<LoginPage> {
   bool showPassword = false;
   bool isLoading = false;
 
-  void _onClickLogin() {
+  List<String> validDomains = <String>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _getAllInstitutes();
+  }
+
+  void _getAllInstitutes() {
+    GetIt.I<AccountController>().getAllInstitutes().then((value) => mounted
+        ? setState(() {
+            validDomains.clear();
+            validDomains.addAll(value.map((e) => e.domainName));
+          })
+        : null);
+  }
+
+  void _onClickLogin() async {
+    FocusScope.of(context).requestFocus(FocusNode());
     if (_formKey.currentState?.validate() ?? false) {
-      // Validation passed, do something with the email and password
       String email = _emailController.text;
       String password = _passwordController.text;
 
-      context.go(AppRouter.home);
+      try {
+        if (mounted) {
+          setState(() {
+            isLoading = true;
+          });
+        }
+        var response = await GetIt.I<AccountService>()
+            .login(email: email, password: password);
+        if (response.statusCode == 200) {
+          // user created
+          if (mounted) {
+            GetIt.I<AccountController>()
+                ..updateUserOnboardingState(UserOnboardingState.onboarded);
+            // ..saveUserData(response.data['email'], response.data['_id']);
+            context.go(AppRouter.home);
+          }
+        } else {
+          debugPrint(response.statusCode.toString());
+          debugPrint(response.statusMessage.toString());
+          Fluttertoast.showToast(
+              msg: "${response.data}", toastLength: Toast.LENGTH_LONG);
+        }
+      } on DioException catch (e, s) {
+        debugPrintStack(stackTrace: s, label: e.toString());
+        Fluttertoast.showToast(
+            msg: "Error while registering the user. ${e.response?.data}",
+            toastLength: Toast.LENGTH_LONG);
+      } on Exception catch (e, s) {
+        debugPrintStack(stackTrace: s, label: e.toString());
+        Fluttertoast.showToast(
+            msg: "Error while registering the user. ${e.toString()}",
+            toastLength: Toast.LENGTH_LONG);
+      } finally {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -36,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
     isEmailValid = false;
     if (value?.isEmpty ?? false) {
       return 'Email is required';
-    } else if (!(value?.isValidInstitutionEmail() ?? true)) {
+    } else if (!(value?.isValidInstitutionEmail(validDomains) ?? true)) {
       return 'Enter a valid institution email address';
     }
     isEmailValid = true;
@@ -96,6 +157,7 @@ class _LoginPageState extends State<LoginPage> {
                     TextFormField(
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
                         hintText: "Johndoe@mycollege.ca",
                       ),
@@ -106,6 +168,8 @@ class _LoginPageState extends State<LoginPage> {
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       controller: _passwordController,
                       obscureText: !showPassword,
+                      keyboardType:
+                          showPassword ? TextInputType.visiblePassword : null,
                       validator: _validatePassword,
                       decoration: InputDecoration(
                           hintText: "Password",

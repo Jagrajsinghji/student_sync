@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
 import 'package:student_sync/utils/constants/assets.dart';
+import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -19,8 +22,37 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    timer = Timer(splashDuration, () {
-      context.go(AppRouter.onboarding);
+    timer = Timer(splashDuration, () async {
+      AccountController controller = GetIt.I<AccountController>();
+      UserOnboardingState state = controller.getUserOnboardingState();
+      String? email = controller.getSavedUserEmail();
+      String? userId = controller.getSavedUserId();
+      if (email == null || userId == null) {
+        state = UserOnboardingState.none;
+      }
+      switch (state) {
+        case UserOnboardingState.none:
+          context.go(AppRouter.onboarding);
+          break;
+        case UserOnboardingState.preRegistered:
+          context.go(AppRouter.verifyEmailPage);
+          break;
+        case UserOnboardingState.verifiedEmail:
+          context.go(AppRouter.tellUsMore);
+          break;
+        case UserOnboardingState.registered:
+          context.go(AppRouter.studentIdCapture);
+          break;
+        case UserOnboardingState.idAdded:
+          context.go(AppRouter.addSkills);
+          break;
+        case UserOnboardingState.addedOwnSkills:
+          context.go(AppRouter.learnSkills);
+          break;
+        case UserOnboardingState.onboarded:
+          context.go(AppRouter.home);
+          break;
+      }
     });
   }
 

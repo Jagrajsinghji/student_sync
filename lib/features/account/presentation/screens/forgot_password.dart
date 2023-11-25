@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 import 'package:student_sync/utils/theme/colors.dart';
@@ -16,12 +18,28 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   final TextEditingController _emailController = TextEditingController();
 
   bool isEmailValid = false;
+  List<String> validDomains = <String>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _getAllInstitutes();
+  }
+
+  void _getAllInstitutes() {
+    GetIt.I<AccountController>().getAllInstitutes().then((value) => mounted
+        ? setState(() {
+            validDomains.clear();
+            validDomains.addAll(value.map((e) => e.domainName));
+          })
+        : null);
+  }
 
   String? _validateEmail(String? value) {
     isEmailValid = false;
     if (value?.isEmpty ?? false) {
       return 'Email is required';
-    } else if (!(value?.isValidInstitutionEmail() ?? true)) {
+    } else if (!(value?.isValidInstitutionEmail(validDomains) ?? true)) {
       return 'Enter a valid institution email address';
     }
     isEmailValid = true;
@@ -71,6 +89,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     TextFormField(
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
                         hintText: "Johndoe@mycollege.ca",
                       ),
@@ -92,7 +111,10 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 bool isEnabled = isEmailValid;
                                 return Center(
                                   child: ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      FocusScope.of(context)
+                                          .requestFocus(FocusNode());
+                                    },
                                     child: const Text(
                                       'Send Email',
                                     ),
