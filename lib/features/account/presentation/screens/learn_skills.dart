@@ -4,21 +4,23 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/features/account/models/skill.dart';
-import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
-import 'package:student_sync/features/account/services/skill_service.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 import 'package:student_sync/utils/theme/colors.dart';
 
 class LearnSkills extends StatefulWidget {
-  const LearnSkills({super.key});
+  const LearnSkills({super.key, required this.editSkills});
+
+  final bool editSkills;
 
   @override
   State<LearnSkills> createState() => _LearnSkillsState();
 }
 
 class _LearnSkillsState extends State<LearnSkills> {
+  final APIController apiController = GetIt.I<APIController>();
   var allSkills = <Skill>[];
   bool isLoading = false;
   ValueNotifier<String> errorString = ValueNotifier("");
@@ -26,7 +28,7 @@ class _LearnSkillsState extends State<LearnSkills> {
   @override
   void initState() {
     super.initState();
-    GetIt.I<AccountController>().getAllSkills().then((value) {
+    GetIt.I<APIController>().getAllSkills().then((value) {
       if (mounted) {
         setState(() {
           allSkills.clear();
@@ -40,6 +42,7 @@ class _LearnSkillsState extends State<LearnSkills> {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     return Scaffold(
+      appBar: widget.editSkills ? AppBar() : null,
       body: Column(
         children: [
           Expanded(
@@ -49,9 +52,10 @@ class _LearnSkillsState extends State<LearnSkills> {
                 shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  const SizedBox(
-                    height: 80,
-                  ),
+                  if (!widget.editSkills)
+                    const SizedBox(
+                      height: 80,
+                    ),
                   const Align(
                       alignment: Alignment.centerLeft,
                       child: Text("Learn Some Skills ",
@@ -173,16 +177,20 @@ class _LearnSkillsState extends State<LearnSkills> {
           isLoading = true;
         });
       }
-      var accountController = GetIt.I<AccountController>();
-      String? userId = accountController.getSavedUserId();
-      throwIf(userId == null,
-          "No userId saved for the user. Restart from onboarding or login");
-      var response = await GetIt.I<SkillService>().addUserWantSkills(userId!,
+
+      var response = await apiController.addUserWantSkills(
           allSkills.where((element) => element.isSelected.value).toList());
       if (response.statusCode == 200 && mounted) {
-        accountController
-            .updateUserOnboardingState(UserOnboardingState.onboarded);
-        context.go(AppRouter.home);
+        if (widget.editSkills) {
+          context.pop();
+        } else {
+          apiController
+              .updateUserOnboardingState(UserOnboardingState.onboarded);
+          await apiController.getUserInfo();
+          if (mounted) {
+            context.go(AppRouter.home);
+          }
+        }
       }
     } on DioException catch (e, s) {
       debugPrintStack(stackTrace: s, label: e.toString());

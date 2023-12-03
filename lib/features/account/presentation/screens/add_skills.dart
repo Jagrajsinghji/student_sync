@@ -4,21 +4,23 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/features/account/models/skill.dart';
-import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
-import 'package:student_sync/features/account/services/skill_service.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 import 'package:student_sync/utils/theme/colors.dart';
 
 class AddSkills extends StatefulWidget {
-  const AddSkills({super.key});
+  const AddSkills({super.key, required this.editSkills});
+
+  final bool editSkills;
 
   @override
   State<AddSkills> createState() => _AddSkillsState();
 }
 
 class _AddSkillsState extends State<AddSkills> {
+  final APIController apiController = GetIt.I<APIController>();
   var allSkills = <Skill>[];
   bool isLoading = false;
   ValueNotifier<String> errorString = ValueNotifier("");
@@ -26,7 +28,7 @@ class _AddSkillsState extends State<AddSkills> {
   @override
   void initState() {
     super.initState();
-    GetIt.I<AccountController>().getAllSkills().then((value) {
+    GetIt.I<APIController>().getAllSkills().then((value) {
       if (mounted) {
         setState(() {
           allSkills.clear();
@@ -40,6 +42,7 @@ class _AddSkillsState extends State<AddSkills> {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     return Scaffold(
+      appBar: widget.editSkills ? AppBar() : null,
       body: Column(
         children: [
           Expanded(
@@ -49,9 +52,10 @@ class _AddSkillsState extends State<AddSkills> {
                 shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  const SizedBox(
-                    height: 80,
-                  ),
+                  if (!widget.editSkills)
+                    const SizedBox(
+                      height: 80,
+                    ),
                   const Align(
                       alignment: Alignment.centerLeft,
                       child: Text("Add Your Skills",
@@ -167,27 +171,27 @@ class _AddSkillsState extends State<AddSkills> {
 
   void _addSkills() async {
     try {
-      var accountController = GetIt.I<AccountController>();
-      accountController
-          .updateUserOnboardingState(UserOnboardingState.addedOwnSkills);
-      context.go(AppRouter.learnSkills);
-      return;
+      // var ac = GetIt.I<apiController>();
+      // ac
+      //     .updateUserOnboardingState(UserOnboardingState.addedOwnSkills);
+      // context.go(AppRouter.learnSkills);
+      // return;
       if (!isValidSkillConditions()) return;
       if (mounted) {
         setState(() {
           isLoading = true;
         });
       }
-      var accountCdontroller = GetIt.I<AccountController>();
-      String? userId = accountController.getSavedUserId();
-      throwIf(userId == null,
-          "No userId saved for the user. Restart from onboarding or login");
-      var response = await GetIt.I<SkillService>().addUserOwnSkills(userId!,
+      var response = await apiController.addUserOwnSkills(
           allSkills.where((element) => element.isSelected.value).toList());
       if (response.statusCode == 200 && mounted) {
-        accountController
-            .updateUserOnboardingState(UserOnboardingState.addedOwnSkills);
-        context.go(AppRouter.learnSkills);
+        if (widget.editSkills) {
+          context.pop();
+        } else {
+          apiController
+              .updateUserOnboardingState(UserOnboardingState.addedOwnSkills);
+          context.go(AppRouter.learnSkills);
+        }
       }
     } on DioException catch (e, s) {
       debugPrintStack(stackTrace: s, label: e.toString());

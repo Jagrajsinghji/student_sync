@@ -9,3 +9,5 @@ enum UserOnboardingState {
   addedOwnSkills,
   onboarded
 }
+
+enum PhotoType { ProfilePicture, StudentId, Post }

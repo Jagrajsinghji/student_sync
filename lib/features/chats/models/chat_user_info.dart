@@ -13,6 +13,6 @@ class ChatUserInfo {
         userImage: data['user_image']);
   }
 
-  Map<String,dynamic> toMap() =>
+  Map<String, dynamic> toMap() =>
       {"user_id": userId, "username": username, "user_image": userImage};
 }

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:student_sync/common_widgets/home.dart';
 import 'package:student_sync/common_widgets/not_found_page.dart';
 import 'package:student_sync/common_widgets/splash_screen.dart';
 import 'package:student_sync/features/account/presentation/screens/add_skills.dart';
@@ -10,8 +13,16 @@ import 'package:student_sync/features/account/presentation/screens/sign_up.dart'
 import 'package:student_sync/features/account/presentation/screens/student_id_capture.dart';
 import 'package:student_sync/features/account/presentation/screens/tell_us_more.dart';
 import 'package:student_sync/features/account/presentation/screens/verify_email.dart';
-import 'package:student_sync/features/main_app/presentation/home.dart';
+import 'package:student_sync/features/channel/models/post.dart';
+import 'package:student_sync/features/channel/presentation/add_post.dart';
+import 'package:student_sync/features/chats/models/chat_info.dart';
+import 'package:student_sync/features/chats/presentation/chat_screen.dart';
 import 'package:student_sync/features/onboarding/presentation/onboarding.dart';
+import 'package:student_sync/features/people/presentation/people_near_me.dart';
+import 'package:student_sync/features/profile/models/user_info.dart';
+import 'package:student_sync/features/profile/presentation/edit_profile.dart';
+import 'package:student_sync/features/profile/presentation/profile.dart';
+import 'package:student_sync/features/profile/presentation/show_post_image.dart';
 import 'package:student_sync/utils/routing/route_builder.dart';
 
 abstract class AppRouter {
@@ -26,6 +37,12 @@ abstract class AppRouter {
   static const String home = "/home";
   static const String notFound = "/notFound";
   static const String studentIdCapture = "/studentIdCapture";
+  static const String chatScreen = "/chat";
+  static const String peopleNearMe = "/peopleNearMe";
+  static const String editProfile = "/editProfile";
+  static const String addPost = "/addPost";
+  static const String profile = "/profile";
+  static const String showPostPhoto = "/showPostPhoto";
 
   static final RouterConfig<Object>? routerConfig = _getRouterConfig();
 
@@ -58,11 +75,42 @@ abstract class AppRouter {
             pageBuilder: (_, __) => buildPage(const StudentIdCapture())),
         GoRoute(
             path: addSkills,
-            pageBuilder: (_, state) => buildPage(const AddSkills())),
+            pageBuilder: (_, state) => buildPage(
+                AddSkills(editSkills: (state.extra as bool?) ?? false))),
         GoRoute(
             path: learnSkills,
-            pageBuilder: (_, __) => buildPage(const LearnSkills())),
+            pageBuilder: (_, state) => buildPage(LearnSkills(
+                  editSkills: (state.extra as bool?) ?? false,
+                ))),
         GoRoute(path: home, pageBuilder: (_, __) => buildPage(const Home())),
+        GoRoute(
+            path: addPost,
+            pageBuilder: (_, state) => buildPage(AddPost(
+                  image: state.extra as File,
+                ))),
+        GoRoute(
+            path: editProfile,
+            pageBuilder: (_, state) => buildPage(EditProfile(
+                  userInfo: state.extra as UserInfo,
+                ))),
+        GoRoute(
+            path: peopleNearMe,
+            pageBuilder: (_, __) => buildPage(const PeopleNearMe())),
+        GoRoute(
+            path: chatScreen,
+            pageBuilder: (_, state) => buildPage(ChatScreen(
+                  chatInfo: state.extra as ChatInfo,
+                ))),
+        GoRoute(
+            path: profile,
+            pageBuilder: (_, state) => buildPage(Profile(
+                  userId: state.extra as String?,
+                ))),
+        GoRoute(
+            path: showPostPhoto,
+            pageBuilder: (_, state) => buildPage(ShowPostPhoto(
+                  post: state.extra as Post,
+                ))),
         GoRoute(
             path: notFound,
             pageBuilder: (_, __) => buildPage(const NotFoundPage())),

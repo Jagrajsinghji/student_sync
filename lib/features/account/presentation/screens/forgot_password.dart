@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
+import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 import 'package:student_sync/utils/theme/colors.dart';
@@ -14,6 +14,7 @@ class ForgotPassword extends StatefulWidget {
 }
 
 class _ForgotPasswordState extends State<ForgotPassword> {
+  final APIController apiController = GetIt.I<APIController>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
 
@@ -27,7 +28,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   }
 
   void _getAllInstitutes() {
-    GetIt.I<AccountController>().getAllInstitutes().then((value) => mounted
+    GetIt.I<APIController>().getAllInstitutes().then((value) => mounted
         ? setState(() {
             validDomains.clear();
             validDomains.addAll(value.map((e) => e.domainName));

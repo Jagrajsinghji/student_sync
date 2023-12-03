@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
+import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
@@ -23,10 +23,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     timer = Timer(splashDuration, () async {
-      AccountController controller = GetIt.I<AccountController>();
+      APIController controller = GetIt.I<APIController>();
       UserOnboardingState state = controller.getUserOnboardingState();
       String? email = controller.getSavedUserEmail();
       String? userId = controller.getSavedUserId();
+      print(state);
+      print(email);
+      print(userId);
       if (email == null || userId == null) {
         state = UserOnboardingState.none;
       }

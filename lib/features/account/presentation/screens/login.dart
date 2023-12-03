@@ -4,8 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
-import 'package:student_sync/features/account/services/account_service.dart';
+import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
@@ -19,6 +18,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final APIController apiController = GetIt.I<APIController>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _getAllInstitutes() {
-    GetIt.I<AccountController>().getAllInstitutes().then((value) => mounted
+    GetIt.I<APIController>().getAllInstitutes().then((value) => mounted
         ? setState(() {
             validDomains.clear();
             validDomains.addAll(value.map((e) => e.domainName));
@@ -57,15 +57,17 @@ class _LoginPageState extends State<LoginPage> {
             isLoading = true;
           });
         }
-        var response = await GetIt.I<AccountService>()
-            .login(email: email, password: password);
+        var response = await apiController.login(
+            email: email.toLowerCase(), password: password);
         if (response.statusCode == 200) {
-          // user created
           if (mounted) {
-            GetIt.I<AccountController>()
-                ..updateUserOnboardingState(UserOnboardingState.onboarded);
-            // ..saveUserData(response.data['email'], response.data['_id']);
-            context.go(AppRouter.home);
+            apiController
+              ..updateUserOnboardingState(UserOnboardingState.onboarded)
+              ..saveUserData(response.data['email'], response.data['_id']);
+            await apiController.getUserInfo();
+            if (mounted) {
+              context.go(AppRouter.home);
+            }
           }
         } else {
           debugPrint(response.statusCode.toString());
@@ -76,12 +78,12 @@ class _LoginPageState extends State<LoginPage> {
       } on DioException catch (e, s) {
         debugPrintStack(stackTrace: s, label: e.toString());
         Fluttertoast.showToast(
-            msg: "Error while registering the user. ${e.response?.data}",
+            msg: "Error while logging in the user. ${e.response?.data}",
             toastLength: Toast.LENGTH_LONG);
       } on Exception catch (e, s) {
         debugPrintStack(stackTrace: s, label: e.toString());
         Fluttertoast.showToast(
-            msg: "Error while registering the user. ${e.toString()}",
+            msg: "Error while logging in the user. ${e.toString()}",
             toastLength: Toast.LENGTH_LONG);
       } finally {
         if (mounted) {

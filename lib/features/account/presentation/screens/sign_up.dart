@@ -4,8 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
-import 'package:student_sync/features/account/services/account_service.dart';
+import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
@@ -19,6 +18,7 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  final APIController apiController = GetIt.I<APIController>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -43,7 +43,7 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void _getAllInstitutes() {
-    GetIt.I<AccountController>().getAllInstitutes().then((value) => mounted
+    GetIt.I<APIController>().getAllInstitutes().then((value) => mounted
         ? setState(() {
             validDomains.clear();
             validDomains.addAll(value.map((e) => e.domainName));
@@ -269,13 +269,13 @@ class _SignUpPageState extends State<SignUpPage> {
             isLoading = true;
           });
         }
-        var response = await GetIt.I<AccountService>()
-            .registerUser(email: email, password: password);
+        var response =
+            await apiController.registerUser(email: email, password: password);
         if (response.statusCode == 201) {
           // user created
           if (mounted) {
             var data = response.data as Map;
-            GetIt.I<AccountController>()
+            apiController
               ..updateUserOnboardingState(UserOnboardingState.preRegistered)
               ..saveUserData(data['email'], data['_id']);
             context.go(AppRouter.verifyEmailPage);

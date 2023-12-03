@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
-import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
-import 'package:student_sync/features/account/services/account_service.dart';
+import 'package:student_sync/controller/api_controller.dart';
+import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
 
@@ -17,6 +17,7 @@ class VerifyEmail extends StatefulWidget {
 }
 
 class _VerifyEmailState extends State<VerifyEmail> {
+  final APIController apiController = GetIt.I<APIController>();
   static const _timerDuration = 60;
   final StreamController _timerStream = StreamController<int>();
   Timer? _resendCodeTimer;
@@ -85,11 +86,11 @@ class _VerifyEmailState extends State<VerifyEmail> {
             ),
             Container(
                 color: Colors.transparent,
-                child: Lottie.asset("assets/verifyEmailLottie.json")),
+                child: Lottie.asset(Assets.verifyEmailLottie)),
             ElevatedButton(
                 onPressed: () {
                   context.go(AppRouter.tellUsMore);
-                  GetIt.I<AccountController>().updateUserOnboardingState(
+                  GetIt.I<APIController>().updateUserOnboardingState(
                       UserOnboardingState.verifiedEmail);
                 },
                 child: const Text("Continue"))
@@ -100,11 +101,10 @@ class _VerifyEmailState extends State<VerifyEmail> {
   }
 
   void _sendVerificationEmail() {
-    var accountController = GetIt.I<AccountController>();
-    String? email = accountController.getSavedUserEmail();
+    String? email = apiController.getSavedUserEmail();
     throwIf(email == null,
         "No email saved for the user. Restart from onboarding or login");
-    GetIt.I<AccountService>().sendVerificationEmail(email!).then((value) {
+    apiController.sendVerificationEmail(email!).then((value) {
       _timerStream.sink.add(_timerDuration);
       _activateResendTimer();
     });

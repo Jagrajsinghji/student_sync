@@ -13,8 +13,9 @@ class ChatService {
       .collection("Chats")
       .where("users", arrayContains: userId)
       .snapshots()
-      .map((event) =>
-          event.docs.map((doc) => ChatInfo.fromMap(doc.data())).toList());
+      .map((event) => event.docs
+          .map((doc) => ChatInfo.fromMap(doc.id, doc.data()))
+          .toList());
 
   Stream<List<ChatMessage>> getChatHistoryStream(String chatId) => _firestore
       .collection("Chats")
@@ -25,7 +26,7 @@ class ChatService {
       .map((event) =>
           event.docs.map((doc) => ChatMessage.fromMap(doc.data())).toList());
 
-  void sendMessageToUser(
+  Future<ChatInfo> sendMessageToUser(
       ChatUserInfo sender, ChatUserInfo receiver, String message,
       {String? chatId}) async {
     // check if sender and receiver already has a chat session
@@ -36,8 +37,9 @@ class ChatService {
           .get(const GetOptions(source: Source.serverAndCache));
       try {
         chatId = snapshot.docs
-            .firstWhere((doc) =>
-                ChatInfo.fromMap(doc.data()).users.contains(receiver.userId))
+            .firstWhere((doc) => ChatInfo.fromMap(doc.id, doc.data())
+                .users
+                .contains(receiver.userId))
             .id;
       } on StateError {
         debugPrint("no chat id present, starting a new session");
@@ -53,11 +55,12 @@ class ChatService {
         read: false);
 
     ChatInfo info = ChatInfo(
+        chatId: chatId ?? "",
         lastMessage: chatMessage,
         users: [sender.userId, receiver.userId],
         userInfo: [sender, receiver]);
 
-    _firestore.runTransaction((transaction) async {
+    await _firestore.runTransaction((transaction) async {
       chatId ??= (await _firestore.collection("Chats").add(info.toMap())).id;
       var docRef = _firestore.collection("Chats").doc(chatId);
       var historyRef = _firestore
@@ -71,14 +74,15 @@ class ChatService {
           //update chat history
           .set(historyRef, chatMessage.toMap());
     });
+    return ChatInfo.fromChatInfo(chatId!, info);
   }
 
-  void seenLastMessage(String chatId, String userId) {
-    _firestore.runTransaction((transaction) async {
+  Future seenLastMessage(String chatId, String userId) {
+    return _firestore.runTransaction((transaction) async {
       var docRef = _firestore.collection("Chats").doc(chatId);
       var snapshot = await transaction.get(docRef);
       if (snapshot.exists && snapshot.data() != null) {
-        ChatInfo chatInfo = ChatInfo.fromMap(snapshot.data()!);
+        ChatInfo chatInfo = ChatInfo.fromMap(snapshot.id, snapshot.data()!);
         // if last message is not sent by user then mark it as seen
         if (chatInfo.lastMessage.senderId != userId) {
           chatInfo.lastMessage.markAsRead();
@@ -86,5 +90,9 @@ class ChatService {
         }
       }
     });
+  }
+
+  Future<void> deleteChat(String chatId) async {
+    return _firestore.collection("Chats").doc(chatId).delete();
   }
 }

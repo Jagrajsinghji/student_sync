@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 
 class NotificationOB extends StatefulWidget {
@@ -48,6 +48,6 @@ class _NotificationOBState extends State<NotificationOB> {
   }
 
   Future<void> askNotificationPermissions() async {
-    Permission.notification.request();
+    await FirebaseMessaging.instance.requestPermission();
   }
 }

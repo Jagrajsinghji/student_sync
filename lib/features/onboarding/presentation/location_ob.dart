@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 
 class LocationOB extends StatefulWidget {
@@ -45,7 +46,18 @@ class _LocationOBState extends State<LocationOB> {
     );
   }
 
-  void askLocationPermissions() {
-    Permission.locationWhenInUse.request();
+  void askLocationPermissions() async {
+    if (await Geolocator.isLocationServiceEnabled()) {
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        await Geolocator.requestPermission();
+      } else if (perm == LocationPermission.deniedForever) {
+        await Geolocator.openAppSettings();
+      }
+    } else {
+      Fluttertoast.showToast(
+          msg: "Please turn on location services",
+          toastLength: Toast.LENGTH_LONG);
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:student_sync/firebase_options.dart';
 import 'package:student_sync/utils/globals/functions.dart';
@@ -7,10 +8,10 @@ import 'package:student_sync/utils/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  initServiceLocator();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  initServiceLocator();
   runApp(const MyApp());
 }
 

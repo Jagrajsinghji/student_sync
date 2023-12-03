@@ -9,9 +9,9 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
+import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/features/account/models/institution.dart';
-import 'package:student_sync/features/account/presentation/controllers/AccountController.dart';
-import 'package:student_sync/features/account/services/account_service.dart';
+import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
@@ -25,6 +25,7 @@ class TellUsMore extends StatefulWidget {
 }
 
 class _TellUsMoreState extends State<TellUsMore> {
+  final APIController apiController = GetIt.I<APIController>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -103,7 +104,7 @@ class _TellUsMoreState extends State<TellUsMore> {
   }
 
   void _getAllInstitutes() {
-    GetIt.I<AccountController>().getAllInstitutes().then((value) => mounted
+    apiController.getAllInstitutes().then((value) => mounted
         ? setState(() {
             listOfInstitutes.clear();
             listOfInstitutes.addAll(value);
@@ -147,7 +148,7 @@ class _TellUsMoreState extends State<TellUsMore> {
                         height: 160,
                         width: 160,
                         child: _pickedImage == null
-                            ? Lottie.asset("assets/profileLottie.json")
+                            ? Lottie.asset(Assets.profileLottie)
                             : ClipRRect(
                                 borderRadius: BorderRadius.circular(80),
                                 clipBehavior: Clip.antiAlias,
@@ -238,7 +239,7 @@ class _TellUsMoreState extends State<TellUsMore> {
                                 ...listOfInstitutes.map((inst) {
                                   return DropdownMenuEntry(
                                       value: inst, label: inst.name);
-                                }).toList()
+                                })
                               ]),
                           const SizedBox(height: 10),
                           TextFormField(
@@ -303,7 +304,7 @@ class _TellUsMoreState extends State<TellUsMore> {
                                 ...provinceList.map((pro) {
                                   return DropdownMenuEntry(
                                       value: pro, label: pro);
-                                }).toList()
+                                })
                               ]),
                           const SizedBox(height: 20),
                         ],
@@ -325,12 +326,12 @@ class _TellUsMoreState extends State<TellUsMore> {
                     ],
                     child: Builder(builder: (context) {
                       bool isEnabled = isNameValid &&
-                              isPhoneValid &&
-                              isCityValid &&
-                              isPostalValid &&
-                              selectedProvince != null
-                          //&& _pickedImage != null
-                          ;
+                          isPhoneValid &&
+                          isCityValid &&
+                          isPostalValid &&
+                          selectedProvince != null &&
+                          selectedInstitute != null &&
+                          _pickedImage != null;
                       return ElevatedButton(
                         onPressed:
                             (isEnabled & !isLoading) ? _onClickContinue : null,
@@ -373,30 +374,30 @@ class _TellUsMoreState extends State<TellUsMore> {
             isLoading = true;
           });
         }
-        var accountController = GetIt.I<AccountController>();
-        String? userId = accountController.getSavedUserId();
-        throwIf(userId == null,
-            "No userId saved for the user. Restart from onboarding or login");
-        var response = await GetIt.I<AccountService>().updateUser(
-          userId: userId!,
-          name: _nameController.text,
-          city: _cityController.text,
-          country: "Canada",
-          institutionId: selectedInstitute?.id,
-          mobileNumber: _phoneController.text,
-          province: selectedProvince,
-        );
-        if (response.statusCode == 200) {
+
+        ///upload profile picture
+        String profileUrl = await apiController.uploadPhoto(
+            file: _pickedImage!, type: PhotoType.ProfilePicture);
+
+        ///update data in db
+        var response = await apiController.updateUser(
+            name: _nameController.text,
+            city: _cityController.text,
+            country: "Canada",
+            institutionId: selectedInstitute?.id,
+            mobileNumber: _phoneController.text,
+            province: selectedProvince,
+            postalCode: _postalController.text,
+            profileImage: profileUrl);
+        if (response !=null) {
           if (mounted) {
-            accountController
+            apiController
                 .updateUserOnboardingState(UserOnboardingState.registered);
             context.go(AppRouter.studentIdCapture);
           }
         } else {
-          debugPrint(response.statusCode.toString());
-          debugPrint(response.statusMessage.toString());
           Fluttertoast.showToast(
-              msg: "${response.data}", toastLength: Toast.LENGTH_LONG);
+              msg: "Error while updating data $response", toastLength: Toast.LENGTH_LONG);
         }
       } on DioException catch (e, s) {
         debugPrintStack(stackTrace: s, label: e.toString());

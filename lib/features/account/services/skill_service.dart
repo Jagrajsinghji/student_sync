@@ -35,4 +35,34 @@ class SkillService {
     return _dio.client
         .post(APIEndpoints.addWantSkillByUserId + userId, data: data);
   }
+
+  Future<List<String>> getUserOwnSkills(String userId) async {
+    try {
+      var response =
+          await _dio.client.get(APIEndpoints.getUserOwnSkills + userId);
+      if (response.statusCode == 200) {
+        return ((response.data as Map)['ownSkills'] as List)
+            .map((e) => e.toString())
+            .toList();
+      }
+    } catch (e, s) {
+      debugPrintStack(stackTrace: s, label: e.toString());
+    }
+    return [];
+  }
+
+  Future<List<String>> getUserWantSkills(String userId) async{
+    try {
+      var response =
+          await _dio.client.get(APIEndpoints.getUserWantSkills + userId);
+      if (response.statusCode == 200) {
+        return ((response.data as Map)['wantSkills'] as List)
+            .map((e) => e.toString())
+            .toList();
+      }
+    } catch (e, s) {
+      debugPrintStack(stackTrace: s, label: e.toString());
+    }
+    return [];
+  }
 }
