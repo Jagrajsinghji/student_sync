@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:student_sync/features/account/models/institution.dart';
 import 'package:student_sync/utils/constants/api_endpoints.dart';
-import 'package:student_sync/utils/globals/functions.dart';
 import 'package:student_sync/utils/network/dio_client.dart';
 
 class AccountService {
@@ -14,12 +13,13 @@ class AccountService {
   }) : _dio = dio;
 
   Future<Response> registerUser(
-      {required String email, required String password}) async {
-    Position position = await getCurrentLocation();
+      {required String email,
+      required String password,
+      required LatLng position}) async {
     var data = {
       "location": {
         "type": "Point",
-        "coordinates": [position.latitude, position.longitude],
+        "coordinates": [position.longitude, position.latitude],
       },
       "email": email,
       "password": password

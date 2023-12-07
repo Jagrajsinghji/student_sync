@@ -17,6 +17,7 @@ import 'package:student_sync/features/channel/models/post.dart';
 import 'package:student_sync/features/channel/presentation/add_post.dart';
 import 'package:student_sync/features/chats/models/chat_info.dart';
 import 'package:student_sync/features/chats/presentation/chat_screen.dart';
+import 'package:student_sync/features/maps/presentation/pick_location_from_map.dart';
 import 'package:student_sync/features/onboarding/presentation/onboarding.dart';
 import 'package:student_sync/features/people/presentation/people_near_me.dart';
 import 'package:student_sync/features/profile/models/user_info.dart';
@@ -43,6 +44,7 @@ abstract class AppRouter {
   static const String addPost = "/addPost";
   static const String profile = "/profile";
   static const String showPostPhoto = "/showPostPhoto";
+  static const String mapScreen = "/pickLocation";
 
   static final RouterConfig<Object>? routerConfig = _getRouterConfig();
 
@@ -111,6 +113,9 @@ abstract class AppRouter {
             pageBuilder: (_, state) => buildPage(ShowPostPhoto(
                   post: state.extra as Post,
                 ))),
+        GoRoute(
+            path: mapScreen,
+            pageBuilder: (_, state) => buildPage(const PickLocationFromMap())),
         GoRoute(
             path: notFound,
             pageBuilder: (_, __) => buildPage(const NotFoundPage())),

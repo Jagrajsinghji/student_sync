@@ -183,7 +183,6 @@ class _StudentIdCaptureState extends State<StudentIdCapture> {
 
   void _clickPicture() async {
     try {
-      // context.go(AppRouter.addSkills);return;
       await _initializeControllerFuture;
       await _controller?.setFlashMode(FlashMode.off);
       capturedImage = await _controller?.takePicture();

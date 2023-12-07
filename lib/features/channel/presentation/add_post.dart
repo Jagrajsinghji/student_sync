@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
 import 'package:student_sync/controller/api_controller.dart';
+import 'package:student_sync/controller/location_controller.dart';
 import 'package:student_sync/features/profile/models/user_info.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
@@ -23,13 +25,16 @@ class AddPost extends StatefulWidget {
 
 class _AddPostState extends State<AddPost> {
   final APIController apiController = GetIt.I<APIController>();
+  final LocationController locationController = GetIt.I<LocationController>();
   late final UserInfo userInfo;
   final TextEditingController _captionController = TextEditingController();
   bool isLoading = false;
+  late LatLng postLocation;
 
   @override
   void initState() {
     userInfo = apiController.getUserInfoSync();
+    postLocation = locationController.getCurrentLocation();
     super.initState();
   }
 
@@ -102,7 +107,11 @@ class _AddPostState extends State<AddPost> {
       String imgUrl = await apiController.uploadPhoto(
           file: widget.image, type: PhotoType.Post);
       var resp = await apiController.createPost(
-          caption: _captionController.text, imgUrl: imgUrl);
+          position: postLocation,
+          locationName:
+              await locationController.getLocationNameBasedOn(postLocation),
+          caption: _captionController.text,
+          imgUrl: imgUrl);
       if (resp.statusCode == 201) {
         if (mounted) context.pop();
       }

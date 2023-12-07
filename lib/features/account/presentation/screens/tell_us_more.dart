@@ -394,6 +394,8 @@ class _TellUsMoreState extends State<TellUsMore> {
             apiController
                 .updateUserOnboardingState(UserOnboardingState.registered);
             context.go(AppRouter.studentIdCapture);
+            // apiController.updateUserOnboardingState(UserOnboardingState.idAdded);
+            // context.go(AppRouter.addSkills);
           }
         } else {
           Fluttertoast.showToast(

@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:student_sync/features/channel/models/post.dart';
 import 'package:student_sync/utils/constants/api_endpoints.dart';
-import 'package:student_sync/utils/globals/functions.dart';
 import 'package:student_sync/utils/network/dio_client.dart';
 
 class PostService {
@@ -14,11 +13,12 @@ class PostService {
   Future<Response> createPost(
       {required String userId,
       required String caption,
-      required String imgUrl}) async {
-    Position position = await getCurrentLocation();
+      required String imgUrl,
+      required LatLng position,
+      required String locationName}) async {
     var body = {
-      "coordinates": [position.latitude, position.longitude],
-      "locationName": await getLocationNameBasedOn(position),
+      "coordinates": [position.longitude, position.latitude],
+      "locationName": locationName,
       "userId": userId,
       "caption": caption,
       "coordinate": [43.450053, 80.4935],
@@ -55,8 +55,7 @@ class PostService {
     return list;
   }
 
-  Future<List<Post>> getNearByPosts(int radiusInMeters) async {
-    Position position = await getCurrentLocation();
+  Future<List<Post>> getNearByPosts(LatLng position, double radiusInMeters) async {
     var body = {
       "lat": position.latitude,
       "long": position.longitude,

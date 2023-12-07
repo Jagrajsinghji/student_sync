@@ -18,8 +18,8 @@ class Review {
 
   factory Review.fromMap(Map data) {
     return Review(
-        id: data['id'],
-        userId: data['user_id'],
+        id: data['_id'],
+        userId: data['userId'],
         rating: data['rating'],
         reviewComment: data['review_comment'],
         revieweName: data['reviewe_name'],

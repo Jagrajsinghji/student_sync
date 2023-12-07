@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_sync/features/account/models/institution.dart';
 import 'package:student_sync/features/account/models/skill.dart';
@@ -55,6 +57,8 @@ class APIController {
   final _listOfAllPosts = <Post>[];
   String? _userId;
   UserProfileDetails? _userInfo;
+  final profiles =
+      ValueNotifier<List<UserProfileDetails>>(<UserProfileDetails>[]);
 
   ///---------- Skill Service APIs -----------------///
 
@@ -86,8 +90,11 @@ class APIController {
   ///---------- Account Service APIs -----------------///
 
   Future<Response> registerUser(
-          {required String email, required String password}) =>
-      _accountService.registerUser(email: email, password: password);
+          {required String email,
+          required String password,
+          required LatLng position}) =>
+      _accountService.registerUser(
+          email: email, password: password, position: position);
 
   Future<List<Institution>> getAllInstitutes() async {
     if (_listOfInstitutes.isNotEmpty) return _listOfInstitutes;
@@ -137,11 +144,11 @@ class APIController {
 
   ///---------- Profile Service APIs -----------------///
   Future<UserProfileDetails?> getUserInfo({String? userId}) async {
-    if (_userInfo != null && userId == null) return _userInfo;
-    if (userId != null) {
+    if (userId != null && userId != _userId) {
       return _profileService.getProfileInfo(userId);
-    } else if (_userId != null) {
-      return _userInfo = (await _profileService.getProfileInfo(_userId!));
+    }
+    if (_userId != null) {
+      return _userInfo = await _profileService.getProfileInfo(_userId!);
     }
     return null;
   }
@@ -149,16 +156,17 @@ class APIController {
   UserInfo getUserInfoSync() => _userInfo!.details;
 
   Future<UserInfo?> updateUser(
-          {String? name,
-          String? institutionId,
-          String? city,
-          String? province,
-          String? country,
-          String? mobileNumber,
-          String? studentIdImage,
-          String? profileImage,
-          String? postalCode,
-          String? notificationToken}) async{
+      {String? name,
+      String? institutionId,
+      String? city,
+      String? province,
+      String? country,
+      String? mobileNumber,
+      String? studentIdImage,
+      String? profileImage,
+      String? postalCode,
+      String? notificationToken,
+      LatLng? position}) async {
     var data = await _profileService.updateUser(
         userId: _userId!,
         name: name,
@@ -170,8 +178,8 @@ class APIController {
         studentIdImage: studentIdImage,
         profileImage: profileImage,
         postalCode: postalCode,
-      );
-    if(data!=null) {
+        position: position);
+    if (data != null) {
       _userInfo?.updateInfo(data);
     }
     return data;
@@ -210,9 +218,16 @@ class APIController {
   ///---------- Post Service APIs -----------------///
 
   Future<Response> createPost(
-      {required String caption, required String imgUrl}) async {
+      {required String caption,
+      required String imgUrl,
+      required LatLng position,
+      required String locationName}) async {
     var response = await _postService.createPost(
-        userId: _userId!, caption: caption, imgUrl: imgUrl);
+        position: position,
+        locationName: locationName,
+        userId: _userId!,
+        caption: caption,
+        imgUrl: imgUrl);
     if (response.statusCode == 201) {
       var data = {
         "profile_img_name": response.data['profile_img_name'],
@@ -236,8 +251,8 @@ class APIController {
   Future<List<Post>> getAllPostByUserId({String? userId}) =>
       _postService.getAllPostsByUserId(userId ?? _userId!);
 
-  Future<List<Post>> getNearByPosts(int radiusInMeters) =>
-      _postService.getNearByPosts(radiusInMeters);
+  Future<List<Post>> getNearByPosts(LatLng position, double radiusInMeters) =>
+      _postService.getNearByPosts(position, radiusInMeters);
 
   Future<bool> likePost({required String postId}) =>
       _postService.likePost(userId: _userId!, postId: postId);
@@ -249,17 +264,21 @@ class APIController {
 
   Future<Response> createReview(
           {required String userId,
-          required String reviewerUserId,
           required int rating,
           required String comment}) =>
       _reviewService.createReview(
           userId: userId,
-          reviewerUserId: reviewerUserId,
+          reviewerUserId: _userId!,
           rating: rating,
           comment: comment);
 
   ///---------- People Service APIs ---------------///
   Future<List<UserProfileDetails>> getNearbyPeople(
-          String userId, int radiusInMeters) =>
-      _peopleService.getNearbyPeople(userId, radiusInMeters);
+      LatLng position, double radiusInMeters) async {
+    profiles.value.clear();
+    var resp = await _peopleService.getNearbyPeople(
+        _userId!, position, radiusInMeters);
+    profiles.value = resp;
+    return profiles.value;
+  }
 }

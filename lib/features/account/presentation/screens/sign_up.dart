@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:student_sync/controller/api_controller.dart';
+import 'package:student_sync/controller/location_controller.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
@@ -269,8 +270,11 @@ class _SignUpPageState extends State<SignUpPage> {
             isLoading = true;
           });
         }
-        var response =
-            await apiController.registerUser(email: email, password: password);
+        var response = await apiController.registerUser(
+            email: email,
+            password: password,
+            position:
+                await GetIt.I<LocationController>().getCurrentGPSLocation());
         if (response.statusCode == 201) {
           // user created
           if (mounted) {

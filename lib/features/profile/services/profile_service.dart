@@ -4,43 +4,44 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:student_sync/features/profile/models/user_info.dart';
 import 'package:student_sync/features/profile/models/user_profile_details.dart';
 import 'package:student_sync/utils/constants/api_endpoints.dart';
 import 'package:student_sync/utils/constants/enums.dart';
-import 'package:student_sync/utils/globals/functions.dart';
 import 'package:student_sync/utils/network/dio_client.dart';
 
 class ProfileService {
   final DioClient _dio;
   final FirebaseStorage _firebaseStorage;
   final FirebaseDatabase _firebaseDatabase;
+  final FirebaseMessaging _firebaseMessaging;
 
   ProfileService(
       {required DioClient dioClient,
       required FirebaseStorage firebaseStorage,
-      required FirebaseDatabase firebaseDatabase})
+      required FirebaseDatabase firebaseDatabase,
+      required FirebaseMessaging firebaseMessaging})
       : _dio = dioClient,
         _firebaseStorage = firebaseStorage,
-        _firebaseDatabase = firebaseDatabase;
+        _firebaseDatabase = firebaseDatabase,
+        _firebaseMessaging = firebaseMessaging;
 
-  Future<UserInfo?> updateUser({
-    required String userId,
-    String? name,
-    String? institutionId,
-    String? city,
-    String? province,
-    String? country,
-    String? mobileNumber,
-    String? studentIdImage,
-    String? profileImage,
-    String? postalCode,
-  }) async {
-    Position position = await getCurrentLocation();
+  Future<UserInfo?> updateUser(
+      {required String userId,
+      String? name,
+      String? institutionId,
+      String? city,
+      String? province,
+      String? country,
+      String? mobileNumber,
+      String? studentIdImage,
+      String? profileImage,
+      String? postalCode,
+      LatLng? position}) async {
     String? notificationToken;
     try {
-      notificationToken = await FirebaseMessaging.instance.getToken();
+      notificationToken = await _firebaseMessaging.getToken();
     } catch (e, s) {
       debugPrintStack(label: e.toString(), stackTrace: s);
     }
@@ -56,10 +57,11 @@ class ProfileService {
         if (profileImage != null) "profile_img_name": profileImage,
         if (postalCode != null) "postal_code": postalCode,
         if (notificationToken != null) "notificationToken": notificationToken,
-        "location": {
-          "type": "Point",
-          "coordinates": [position.latitude, position.longitude]
-        },
+        if (position != null)
+          "location": {
+            "type": "Point",
+            "coordinates": [position.longitude, position.latitude]
+          },
       };
       var resp =
           await _dio.client.patch(APIEndpoints.updateUser + userId, data: data);

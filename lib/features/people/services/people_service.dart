@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:student_sync/features/profile/models/user_profile_details.dart';
 import 'package:student_sync/utils/constants/api_endpoints.dart';
-import 'package:student_sync/utils/globals/functions.dart';
 import 'package:student_sync/utils/network/dio_client.dart';
 
 class PeopleService {
@@ -11,8 +10,7 @@ class PeopleService {
   PeopleService({required DioClient dio}) : _dio = dio;
 
   Future<List<UserProfileDetails>> getNearbyPeople(
-      String userId, int radiusInMeters) async {
-    Position position = await getCurrentLocation();
+      String userId, LatLng position, double radiusInMeters) async {
     var body = {
       "userId": userId,
       "lat": position.latitude,
@@ -23,7 +21,7 @@ class PeopleService {
       var response =
           await _dio.client.post(APIEndpoints.getPeopleNearby, data: body);
       if (response.statusCode == 200) {
-        return (response.data as List)
+        return (response.data['users'] as List)
             .map((e) => UserProfileDetails.fromMap(e))
             .toList();
       }
@@ -32,4 +30,5 @@ class PeopleService {
     }
     return [];
   }
+
 }

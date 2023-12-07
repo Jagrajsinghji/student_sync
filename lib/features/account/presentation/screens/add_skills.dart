@@ -186,7 +186,7 @@ class _AddSkillsState extends State<AddSkills> {
           allSkills.where((element) => element.isSelected.value).toList());
       if (response.statusCode == 200 && mounted) {
         if (widget.editSkills) {
-          context.pop();
+          context.pop(true);
         } else {
           apiController
               .updateUserOnboardingState(UserOnboardingState.addedOwnSkills);

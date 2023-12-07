@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:student_sync/controller/api_controller.dart';
+import 'package:student_sync/controller/location_controller.dart';
 import 'package:student_sync/features/channel/models/post.dart';
 
 import 'post_column.dart';
@@ -15,6 +16,7 @@ class GeneralChannel extends StatefulWidget {
 
 class _GeneralChannelState extends State<GeneralChannel> {
   final APIController apiController = GetIt.I<APIController>();
+  final LocationController locationController = GetIt.I<LocationController>();
   List<Post> allPosts = <Post>[];
 
   @override
@@ -26,7 +28,8 @@ class _GeneralChannelState extends State<GeneralChannel> {
   void _getAllPosts() {
     allPosts.clear();
     apiController
-        .getAllPosts()
+        .getNearByPosts(locationController.getCurrentLocation(),
+            locationController.getRadiusInMeters())
         .then((value) => setState(() => allPosts.addAll(value)));
   }
 

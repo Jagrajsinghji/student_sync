@@ -8,8 +8,10 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/controller/bottom_nav_controller.dart';
+import 'package:student_sync/controller/location_controller.dart';
 import 'package:student_sync/features/channel/presentation/general_channel.dart';
 import 'package:student_sync/features/chats/presentation/all_chats.dart';
+import 'package:student_sync/features/people/presentation/people_near_me.dart';
 import 'package:student_sync/features/profile/presentation/profile.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
@@ -24,9 +26,24 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final APIController apiController = GetIt.I<APIController>();
+  final LocationController locationController = GetIt.I<LocationController>();
   final BottomNavController bottomNavController =
       GetIt.I<BottomNavController>();
 
+  @override
+  void initState() {
+    updateUserLocation();
+    super.initState();
+  }
+
+  void updateUserLocation() async {
+    apiController.getUserInfo().then((userInfo) {
+      if (userInfo != null) {
+        locationController.updateUserLocation(userInfo.details.id);
+        if (mounted) setState(() {});
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,21 +109,17 @@ class _HomeState extends State<Home> {
   }
 
   List<Widget> _getAppBarActions(ThemeData theme, int selectedIndex) {
-    var changeLocation = IconButton(
-        icon: const Icon(Icons.edit_location_outlined),
-        iconSize: 30,
-        tooltip: "Change Location",
-        padding: const EdgeInsets.only(right: 10),
-        onPressed: () {});
-
     switch (selectedIndex) {
       case 3:
         //profile
         return [
           IconButton(
             onPressed: () async {
-              context.push(AppRouter.editProfile,
+              await context.push(AppRouter.editProfile,
                   extra: apiController.getUserInfoSync());
+              if (mounted) {
+                setState(() {});
+              }
             },
             icon: Image.asset(
               Assets.editProfilePNG,
@@ -164,7 +177,21 @@ class _HomeState extends State<Home> {
         ];
       case 0:
       default:
-        return [changeLocation];
+        return [
+          IconButton(
+              icon: const Icon(Icons.edit_location_outlined),
+              iconSize: 30,
+              tooltip: "Change Location",
+              padding: const EdgeInsets.only(right: 10),
+              onPressed: () async {
+                var resp = await context.push(AppRouter.mapScreen);
+                if ((resp as bool?) ?? false) {
+                  apiController.getNearbyPeople(
+                      locationController.getCurrentLocation(),
+                      locationController.getRadiusInMeters());
+                }
+              })
+        ];
     }
   }
 
@@ -179,6 +206,9 @@ class _HomeState extends State<Home> {
       //general channel
       case 1:
         return const GeneralChannel();
+      // nearby people
+      case 0:
+        return const PeopleNearMe();
     }
     return null;
   }

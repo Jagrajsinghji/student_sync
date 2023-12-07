@@ -211,9 +211,13 @@ class _ProfileState extends State<Profile> {
                                 const Text("Top skills"),
                                 if (widget.userId == null)
                                   TextButton(
-                                      onPressed: () {
-                                        context.push(AppRouter.addSkills,
+                                      onPressed: () async {
+                                        var resp = await context.push(
+                                            AppRouter.addSkills,
                                             extra: true);
+                                        if (resp == true) {
+                                          apiController.getUserInfo();
+                                        }
                                       },
                                       child: const Text("Edit"))
                               ],
@@ -244,9 +248,13 @@ class _ProfileState extends State<Profile> {
                                 const Text("Learn skills"),
                                 if (widget.userId == null)
                                   TextButton(
-                                      onPressed: () {
-                                        context.push(AppRouter.learnSkills,
+                                      onPressed: () async {
+                                        var resp = await context.push(
+                                            AppRouter.learnSkills,
                                             extra: true);
+                                        if (resp == true) {
+                                          apiController.getUserInfo();
+                                        }
                                       },
                                       child: const Text("Edit"))
                               ],
@@ -278,6 +286,13 @@ class _ProfileState extends State<Profile> {
                         padding: EdgeInsets.only(top: 10.0, bottom: 10),
                         child: Text("Posts"),
                       ),
+                      if (posts.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 40.0),
+                          child: Center(
+                            child: Text("No Posts"),
+                          ),
+                        ),
                     ]),
                     SliverGrid(
                         delegate: SliverChildBuilderDelegate(

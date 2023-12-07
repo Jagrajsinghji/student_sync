@@ -424,7 +424,7 @@ class _EditProfileState extends State<EditProfile> {
             profileImage: profileUrl);
         if (response != null) {
           if (mounted) {
-            context.pop();
+            context.pop(true);
           }
         } else {
           Fluttertoast.showToast(
