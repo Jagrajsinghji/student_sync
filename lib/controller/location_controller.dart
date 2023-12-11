@@ -7,8 +7,9 @@ import 'package:student_sync/features/profile/services/profile_service.dart';
 class LocationController {
   final ProfileService _profileService;
 
-  LatLng _currentLocation = const LatLng(0.0, 0.0);
-  double _radiusInKiloMeters = 5;
+  LatLng? _currentLocation;
+  double _radiusInKiloMeters = 50;
+  ValueNotifier<String> _currentLocationName = ValueNotifier("...");
 
   LocationController({required ProfileService profileService})
       : _profileService = profileService;
@@ -16,8 +17,7 @@ class LocationController {
   Future<String> getLocationNameBasedOn(LatLng location) async {
     var placeMarks =
         await placemarkFromCoordinates(location.latitude, location.longitude);
-    return placeMarks.first.name ??
-        placeMarks.first.subLocality ??
+    return placeMarks.first.subLocality ??
         placeMarks.first.locality ??
         placeMarks.first.subAdministrativeArea ??
         placeMarks.first.administrativeArea ??
@@ -29,27 +29,31 @@ class LocationController {
   Future<LatLng> getCurrentGPSLocation() async {
     try {
       var resp = await Geolocator.getLastKnownPosition();
-      if (resp == null) {
-        resp = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.medium);
-        return _currentLocation = LatLng(resp.latitude, resp.longitude);
-      }
-      return _currentLocation = LatLng(resp.latitude, resp.longitude);
+      resp ??= await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium);
+      _currentLocation = LatLng(resp.latitude, resp.longitude);
+      _currentLocationName.value =
+          await getLocationNameBasedOn(_currentLocation!);
+      return _currentLocation!;
     } catch (e, s) {
       debugPrintStack(stackTrace: s, label: e.toString());
     }
     return const LatLng(0, 0);
   }
 
-  void setCurrentLocationFromMap(LatLng location, double radiusInKiloMeters) {
+  Future<void> setCurrentLocationFromMap(
+      LatLng location, double radiusInKiloMeters) async {
     _currentLocation = location;
     _radiusInKiloMeters = radiusInKiloMeters;
+    _currentLocationName.value = await getLocationNameBasedOn(location);
   }
 
   Future updateUserLocation(String userId) async => _profileService.updateUser(
       userId: userId, position: await getCurrentGPSLocation());
 
-  LatLng getCurrentLocation() => _currentLocation;
+  LatLng getCurrentLocation() => _currentLocation!;
+
+  ValueNotifier<String> getCurrentLocationName() => _currentLocationName;
 
   double getRadiusInMeters() => _radiusInKiloMeters * 1000;
 }

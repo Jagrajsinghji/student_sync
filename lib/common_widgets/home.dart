@@ -109,6 +109,21 @@ class _HomeState extends State<Home> {
   }
 
   List<Widget> _getAppBarActions(ThemeData theme, int selectedIndex) {
+    var locationName = SizedBox(
+        width: 90,
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: ValueListenableBuilder<String>(
+              valueListenable: locationController.getCurrentLocationName(),
+              builder: (context, value, _) {
+                return Text(
+                  "$value, ${locationController.getRadiusInMeters() ~/ 1000}km",
+                  maxLines: 3,
+                  style: TextStyle(color: theme.primaryColor, fontSize: 10),
+                );
+              }),
+        ));
+
     switch (selectedIndex) {
       case 3:
         //profile
@@ -143,22 +158,24 @@ class _HomeState extends State<Home> {
         ];
       case 2:
         //chats
-        return [
-          IconButton(
-            onPressed: () {},
-            icon: Image.asset(
-              Assets.sendNewMessage,
-              color: theme.colorScheme.primary,
-              height: 25,
-              width: 25,
-            ),
-            tooltip: "New Message",
-            padding: const EdgeInsets.only(right: 10),
-          )
-        ];
+        return [];
       case 1:
         // general channel
         return [
+          locationName,
+          IconButton(
+              icon: const Icon(Icons.edit_location_outlined),
+              iconSize: 30,
+              tooltip: "Change Location",
+              padding: const EdgeInsets.only(right: 10),
+              onPressed: () async {
+                var resp = await context.push(AppRouter.mapScreen);
+                if ((resp as bool?) ?? false) {
+                  apiController.getNearByPosts(
+                      locationController.getCurrentLocation(),
+                      locationController.getRadiusInMeters());
+                }
+              }),
           IconButton(
               icon: const Icon(Icons.post_add_outlined),
               iconSize: 30,
@@ -178,6 +195,7 @@ class _HomeState extends State<Home> {
       case 0:
       default:
         return [
+          locationName,
           IconButton(
               icon: const Icon(Icons.edit_location_outlined),
               iconSize: 30,

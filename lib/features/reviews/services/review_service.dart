@@ -10,7 +10,7 @@ class ReviewService {
   ReviewService({required DioClient dio}) : _dio = dio;
 
   Future<List<Review>> getAllReviews(String userId) async {
-    var body = {"userId": userId};
+    var body = {"user_id": userId};
     try {
       var response = await _dio.client
           .post(APIEndpoints.getAllReviewsByUserId, data: body);
@@ -36,6 +36,4 @@ class ReviewService {
     };
     return _dio.client.post(APIEndpoints.createReview, data: body);
   }
-
-
 }

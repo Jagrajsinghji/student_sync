@@ -18,6 +18,8 @@ class Assets {
   static const String startMessagingLottie = "$_basePath/start_messaging.json";
   static const String editProfilePNG = "$_basePath/editProfile.png";
   static const String likeLottie = "$_basePath/likeLottie.json";
+  static const String noUsersLottie = "$_basePath/noUsers.json";
+  static const String noDataLottie = "$_basePath/noData.json";
   static const String likePNG = "$_basePath/liked.png";
   static const String notLikePNG = "$_basePath/notLiked.png";
 }

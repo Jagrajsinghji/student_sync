@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:student_sync/common_widgets/home.dart';
 import 'package:student_sync/common_widgets/not_found_page.dart';
 import 'package:student_sync/common_widgets/splash_screen.dart';
+import 'package:student_sync/features/account/models/skill.dart';
 import 'package:student_sync/features/account/presentation/screens/add_skills.dart';
 import 'package:student_sync/features/account/presentation/screens/forgot_password.dart';
 import 'package:student_sync/features/account/presentation/screens/learn_skills.dart';
@@ -24,6 +25,7 @@ import 'package:student_sync/features/profile/models/user_info.dart';
 import 'package:student_sync/features/profile/presentation/edit_profile.dart';
 import 'package:student_sync/features/profile/presentation/profile.dart';
 import 'package:student_sync/features/profile/presentation/show_post_image.dart';
+import 'package:student_sync/features/reviews/presentation/reviews.dart';
 import 'package:student_sync/utils/routing/route_builder.dart';
 
 abstract class AppRouter {
@@ -43,8 +45,9 @@ abstract class AppRouter {
   static const String editProfile = "/editProfile";
   static const String addPost = "/addPost";
   static const String profile = "/profile";
-  static const String showPostPhoto = "/showPostPhoto";
+  static const String showPost = "/showPost";
   static const String mapScreen = "/pickLocation";
+  static const String reviews = "/reviews";
 
   static final RouterConfig<Object>? routerConfig = _getRouterConfig();
 
@@ -78,12 +81,11 @@ abstract class AppRouter {
         GoRoute(
             path: addSkills,
             pageBuilder: (_, state) => buildPage(
-                AddSkills(editSkills: (state.extra as bool?) ?? false))),
+                AddSkills(editSkills: (state.extra as List<Skill>?) ?? []))),
         GoRoute(
             path: learnSkills,
-            pageBuilder: (_, state) => buildPage(LearnSkills(
-                  editSkills: (state.extra as bool?) ?? false,
-                ))),
+            pageBuilder: (_, state) => buildPage(
+                LearnSkills(editSkills: (state.extra as List<Skill>?) ?? []))),
         GoRoute(path: home, pageBuilder: (_, __) => buildPage(const Home())),
         GoRoute(
             path: addPost,
@@ -109,13 +111,18 @@ abstract class AppRouter {
                   userId: state.extra as String?,
                 ))),
         GoRoute(
-            path: showPostPhoto,
-            pageBuilder: (_, state) => buildPage(ShowPostPhoto(
+            path: showPost,
+            pageBuilder: (_, state) => buildPage(ShowPost(
                   post: state.extra as Post,
                 ))),
         GoRoute(
             path: mapScreen,
             pageBuilder: (_, state) => buildPage(const PickLocationFromMap())),
+        GoRoute(
+            path: reviews,
+            pageBuilder: (_, state) => buildPage(Reviews(
+                  userId: state.extra as String,
+                ))),
         GoRoute(
             path: notFound,
             pageBuilder: (_, __) => buildPage(const NotFoundPage())),

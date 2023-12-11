@@ -25,7 +25,7 @@ class _PostContainerState extends State<PostContainer> {
     return Center(
       child: GestureDetector(
         onTap: () {
-          context.push(AppRouter.showPostPhoto, extra: post);
+          context.push(AppRouter.showPost, extra: post);
         },
         child: CachedNetworkImage(
             imageUrl: post.postImg,

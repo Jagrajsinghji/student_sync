@@ -148,6 +148,4 @@ class APIEndpoints {
   ///     "radiusInMeters": "50000"
   /// }
   static const String getPeopleNearby = "/users/nearbyBasedOnUserSkills";
-
-
 }

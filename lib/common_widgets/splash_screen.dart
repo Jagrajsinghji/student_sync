@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_sync/controller/api_controller.dart';
+import 'package:student_sync/controller/location_controller.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/routing/app_router.dart';
@@ -53,7 +54,11 @@ class _SplashScreenState extends State<SplashScreen> {
           context.go(AppRouter.learnSkills);
           break;
         case UserOnboardingState.onboarded:
-          context.go(AppRouter.home);
+          await GetIt.I<LocationController>().getCurrentGPSLocation();
+          await controller.getUserInfo();
+          if (mounted) {
+            context.go(AppRouter.home);
+          }
           break;
       }
     });

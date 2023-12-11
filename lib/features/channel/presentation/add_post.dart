@@ -113,6 +113,9 @@ class _AddPostState extends State<AddPost> {
           caption: _captionController.text,
           imgUrl: imgUrl);
       if (resp.statusCode == 201) {
+        await apiController.getNearByPosts(
+            locationController.getCurrentLocation(),
+            locationController.getRadiusInMeters());
         if (mounted) context.pop();
       }
     } catch (e, s) {

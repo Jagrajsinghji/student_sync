@@ -13,7 +13,7 @@ import 'package:student_sync/utils/theme/colors.dart';
 class LearnSkills extends StatefulWidget {
   const LearnSkills({super.key, required this.editSkills});
 
-  final bool editSkills;
+  final List<Skill> editSkills;
 
   @override
   State<LearnSkills> createState() => _LearnSkillsState();
@@ -32,6 +32,11 @@ class _LearnSkillsState extends State<LearnSkills> {
       if (mounted) {
         setState(() {
           allSkills.clear();
+          for (var element in value) {
+            if (widget.editSkills.any((eS) => eS.id == element.id)) {
+              element.isSelected.value = true;
+            }
+          }
           allSkills.addAll(value);
         });
       }
@@ -42,7 +47,7 @@ class _LearnSkillsState extends State<LearnSkills> {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     return Scaffold(
-      appBar: widget.editSkills ? AppBar() : null,
+      appBar: widget.editSkills.isNotEmpty ? AppBar() : null,
       body: Column(
         children: [
           Expanded(
@@ -52,7 +57,7 @@ class _LearnSkillsState extends State<LearnSkills> {
                 shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  if (!widget.editSkills)
+                  if (widget.editSkills.isEmpty)
                     const SizedBox(
                       height: 80,
                     ),
@@ -180,8 +185,9 @@ class _LearnSkillsState extends State<LearnSkills> {
 
       var response = await apiController.addUserWantSkills(
           allSkills.where((element) => element.isSelected.value).toList());
-      if (response.statusCode == 200 && mounted) {
-        if (widget.editSkills) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          mounted) {
+        if (widget.editSkills.isNotEmpty) {
           context.pop(true);
         } else {
           apiController

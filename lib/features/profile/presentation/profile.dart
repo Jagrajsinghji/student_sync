@@ -43,6 +43,9 @@ class _ProfileState extends State<Profile> {
               userProfile = value;
               reviewAvg = userProfile!.reviews.fold(0,
                   (previousValue, element) => previousValue + element.rating);
+              if (userProfile!.reviews.length > 1) {
+                reviewAvg = reviewAvg ~/ 5;
+              }
             }));
     apiController
         .getAllPostByUserId(userId: widget.userId)
@@ -99,21 +102,27 @@ class _ProfileState extends State<Profile> {
                                 Text(userProfile!.details.email),
                                 reviewAvg == 0
                                     ? const Text("No reviews.")
-                                    : SizedBox(
-                                        width: 150,
-                                        height: 30,
-                                        child: ListView.builder(
-                                          scrollDirection: Axis.horizontal,
-                                          itemBuilder: (c, index) {
-                                            return Icon(
-                                              Icons.star_rate_outlined,
-                                              color: theme.primaryColor,
-                                            );
-                                          },
-                                          itemCount: reviewAvg,
-                                          shrinkWrap: true,
-                                          physics:
-                                              const BouncingScrollPhysics(),
+                                    : GestureDetector(
+                                        onTap: () {
+                                          context.push(AppRouter.reviews,
+                                              extra: userProfile!.details.id);
+                                        },
+                                        child: SizedBox(
+                                          width: 150,
+                                          height: 30,
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemBuilder: (c, index) {
+                                              return Icon(
+                                                Icons.star_rate_outlined,
+                                                color: theme.primaryColor,
+                                              );
+                                            },
+                                            itemCount: reviewAvg,
+                                            shrinkWrap: true,
+                                            physics:
+                                                const BouncingScrollPhysics(),
+                                          ),
                                         ),
                                       ),
                                 if (widget.userId != null)
@@ -123,7 +132,10 @@ class _ProfileState extends State<Profile> {
                                         style: const ButtonStyle(
                                             padding: MaterialStatePropertyAll(
                                                 EdgeInsets.zero)),
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          context.push(AppRouter.reviews,
+                                              extra: widget.userId);
+                                        },
                                         child: const Text("Add Review")),
                                   )
                               ],
@@ -214,9 +226,11 @@ class _ProfileState extends State<Profile> {
                                       onPressed: () async {
                                         var resp = await context.push(
                                             AppRouter.addSkills,
-                                            extra: true);
+                                            extra: userProfile!.ownSkills);
                                         if (resp == true) {
-                                          apiController.getUserInfo();
+                                          userProfile =
+                                              await apiController.getUserInfo();
+                                          setState(() {});
                                         }
                                       },
                                       child: const Text("Edit"))
@@ -251,9 +265,11 @@ class _ProfileState extends State<Profile> {
                                       onPressed: () async {
                                         var resp = await context.push(
                                             AppRouter.learnSkills,
-                                            extra: true);
+                                            extra: userProfile!.wantSkills);
                                         if (resp == true) {
-                                          apiController.getUserInfo();
+                                          userProfile =
+                                              await apiController.getUserInfo();
+                                          setState(() {});
                                         }
                                       },
                                       child: const Text("Edit"))

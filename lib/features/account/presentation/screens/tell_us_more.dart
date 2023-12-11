@@ -389,7 +389,7 @@ class _TellUsMoreState extends State<TellUsMore> {
             province: selectedProvince,
             postalCode: _postalController.text,
             profileImage: profileUrl);
-        if (response !=null) {
+        if (response != null) {
           if (mounted) {
             apiController
                 .updateUserOnboardingState(UserOnboardingState.registered);
@@ -399,7 +399,8 @@ class _TellUsMoreState extends State<TellUsMore> {
           }
         } else {
           Fluttertoast.showToast(
-              msg: "Error while updating data $response", toastLength: Toast.LENGTH_LONG);
+              msg: "Error while updating data $response",
+              toastLength: Toast.LENGTH_LONG);
         }
       } on DioException catch (e, s) {
         debugPrintStack(stackTrace: s, label: e.toString());

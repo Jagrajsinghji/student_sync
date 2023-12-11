@@ -17,11 +17,11 @@ class PostService {
       required LatLng position,
       required String locationName}) async {
     var body = {
-      "coordinates": [position.longitude, position.latitude],
+      "long": position.longitude,
+      "lat": position.latitude,
       "locationName": locationName,
       "userId": userId,
       "caption": caption,
-      "coordinate": [43.450053, 80.4935],
       "postImg": imgUrl,
       "numOfLike": 0
     };
@@ -55,7 +55,8 @@ class PostService {
     return list;
   }
 
-  Future<List<Post>> getNearByPosts(LatLng position, double radiusInMeters) async {
+  Future<List<Post>> getNearByPosts(
+      LatLng position, double radiusInMeters) async {
     var body = {
       "lat": position.latitude,
       "long": position.longitude,

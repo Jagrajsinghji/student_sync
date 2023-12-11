@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_sync/features/account/models/institution.dart';
@@ -47,18 +47,21 @@ class APIController {
         _chatService = chatService,
         _peopleService = peopleService,
         _postService = postService,
-        _reviewService = reviewService {
-    _userId = getSavedUserId();
-    getUserInfo();
-  }
+        _reviewService = reviewService;
 
   final _listOfInstitutes = <Institution>[];
   final _listOfSkills = <Skill>[];
-  final _listOfAllPosts = <Post>[];
   String? _userId;
   UserProfileDetails? _userInfo;
-  final profiles =
-      ValueNotifier<List<UserProfileDetails>>(<UserProfileDetails>[]);
+  final StreamController<List<UserProfileDetails>?> _profilesController =
+      StreamController<List<UserProfileDetails>?>.broadcast();
+  final StreamController<List<Post>?> _postsController =
+      StreamController<List<Post>?>.broadcast();
+
+  Stream<List<UserProfileDetails>?> get profilesStream =>
+      _profilesController.stream;
+
+  Stream<List<Post>?> get postsStream => _postsController.stream;
 
   ///---------- Skill Service APIs -----------------///
 
@@ -218,41 +221,30 @@ class APIController {
   ///---------- Post Service APIs -----------------///
 
   Future<Response> createPost(
-      {required String caption,
-      required String imgUrl,
-      required LatLng position,
-      required String locationName}) async {
-    var response = await _postService.createPost(
-        position: position,
-        locationName: locationName,
-        userId: _userId!,
-        caption: caption,
-        imgUrl: imgUrl);
-    if (response.statusCode == 201) {
-      var data = {
-        "profile_img_name": response.data['profile_img_name'],
-        "name": response.data['name'],
-      }..addAll(response.data['newpost']);
-      Post post = Post.fromMap(data);
-      _listOfAllPosts.insert(0, post);
-    }
-    return response;
-  }
+          {required String caption,
+          required String imgUrl,
+          required LatLng position,
+          required String locationName}) =>
+      _postService.createPost(
+          position: position,
+          locationName: locationName,
+          userId: _userId!,
+          caption: caption,
+          imgUrl: imgUrl);
 
-  Future<List<Post>> getAllPosts() async {
-    if (_listOfAllPosts.isNotEmpty) return _listOfAllPosts;
-    var value = await _postService.getAllPosts();
-    _listOfAllPosts.clear();
-    _listOfAllPosts.addAll(value);
-    _listOfAllPosts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return _listOfAllPosts;
-  }
+  Future<List<Post>> getAllPosts() => _postService.getAllPosts();
 
   Future<List<Post>> getAllPostByUserId({String? userId}) =>
       _postService.getAllPostsByUserId(userId ?? _userId!);
 
-  Future<List<Post>> getNearByPosts(LatLng position, double radiusInMeters) =>
-      _postService.getNearByPosts(position, radiusInMeters);
+  Future<List<Post>> getNearByPosts(
+      LatLng position, double radiusInMeters) async {
+    _postsController.sink.add(null);
+    var value = await _postService.getNearByPosts(position, radiusInMeters);
+    value.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    _postsController.sink.add(value);
+    return value;
+  }
 
   Future<bool> likePost({required String postId}) =>
       _postService.likePost(userId: _userId!, postId: postId);
@@ -262,23 +254,34 @@ class APIController {
   Future<List<Review>> getAllReviews({String? userId}) =>
       _reviewService.getAllReviews(userId ?? _userId!);
 
-  Future<Response> createReview(
-          {required String userId,
-          required int rating,
-          required String comment}) =>
-      _reviewService.createReview(
-          userId: userId,
-          reviewerUserId: _userId!,
-          rating: rating,
-          comment: comment);
+  Future<Review?> createReview(
+      {required String userId,
+      required int rating,
+      required String comment}) async {
+    var resp = await _reviewService.createReview(
+        userId: userId,
+        reviewerUserId: _userId!,
+        rating: rating,
+        comment: comment);
+    if (resp.statusCode == 201 || resp.statusCode == 200) {
+      Map data = {
+        ...resp.data,
+        "reviewe_name": _userInfo!.details.name,
+        "reviewe_profile_img_name": _userInfo!.details.profileImage,
+        "userId": userId
+      };
+      return Review.fromMap(data);
+    }
+    return null;
+  }
 
   ///---------- People Service APIs ---------------///
   Future<List<UserProfileDetails>> getNearbyPeople(
       LatLng position, double radiusInMeters) async {
-    profiles.value.clear();
+    _profilesController.sink.add(null);
     var resp = await _peopleService.getNearbyPeople(
         _userId!, position, radiusInMeters);
-    profiles.value = resp;
-    return profiles.value;
+    _profilesController.sink.add(resp);
+    return resp;
   }
 }

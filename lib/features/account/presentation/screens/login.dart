@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:student_sync/controller/api_controller.dart';
+import 'package:student_sync/controller/location_controller.dart';
 import 'package:student_sync/utils/constants/assets.dart';
 import 'package:student_sync/utils/constants/enums.dart';
 import 'package:student_sync/utils/constants/extensions.dart';
@@ -65,6 +66,7 @@ class _LoginPageState extends State<LoginPage> {
               ..updateUserOnboardingState(UserOnboardingState.onboarded)
               ..saveUserData(response.data['email'], response.data['_id']);
             await apiController.getUserInfo();
+            await GetIt.I<LocationController>().getCurrentGPSLocation();
             if (mounted) {
               context.go(AppRouter.home);
             }

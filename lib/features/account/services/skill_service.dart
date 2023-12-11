@@ -51,7 +51,7 @@ class SkillService {
     return [];
   }
 
-  Future<List<String>> getUserWantSkills(String userId) async{
+  Future<List<String>> getUserWantSkills(String userId) async {
     try {
       var response =
           await _dio.client.get(APIEndpoints.getUserWantSkills + userId);

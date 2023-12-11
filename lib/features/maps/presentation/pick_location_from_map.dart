@@ -20,6 +20,7 @@ class _PickLocationFromMapState extends State<PickLocationFromMap> {
   final List<Circle> circles = [];
   final List<Marker> markers = [];
   double selectedRadiusInKiloMeters = 5;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -71,7 +72,7 @@ class _PickLocationFromMapState extends State<PickLocationFromMap> {
                 circles[0] = Circle(
                     circleId: const CircleId("location"),
                     center: _center,
-                    radius: 1000,
+                    radius: selectedRadiusInKiloMeters * 1000,
                     fillColor: blueColor.withOpacity(.4),
                     visible: true,
                     consumeTapEvents: true,
@@ -115,7 +116,7 @@ class _PickLocationFromMapState extends State<PickLocationFromMap> {
                     circles[0] = Circle(
                         circleId: const CircleId("location"),
                         center: _center,
-                        radius: value,
+                        radius: selectedRadiusInKiloMeters * 1000,
                         fillColor: blueColor.withOpacity(.4),
                         visible: true,
                         consumeTapEvents: true,
@@ -132,10 +133,17 @@ class _PickLocationFromMapState extends State<PickLocationFromMap> {
                   inactiveColor: theme.colorScheme.primary,
                 ),
                 ElevatedButton(
-                    onPressed: () {
-                      locationController.setCurrentLocationFromMap(
+                    onPressed: () async {
+                      if (mounted) {
+                        setState(() {
+                          isLoading = true;
+                        });
+                      }
+                      await locationController.setCurrentLocationFromMap(
                           _center, selectedRadiusInKiloMeters);
-                      context.pop(true);
+                      if (mounted) {
+                        context.pop(true);
+                      }
                     },
                     child: const Text("Update")),
                 const SizedBox(
@@ -150,12 +158,19 @@ class _PickLocationFromMapState extends State<PickLocationFromMap> {
   }
 
   double getZoom(double radius) {
-    double zoomLevel = 12;
-    if (radius <= 5 && radius < 10) {
-      return 12;
+    if (radius >= 5 && radius < 10) {
+      return 11.5;
     } else if (radius >= 10 && radius < 20) {
-      return 11;
+      return 10;
+    } else if (radius >= 20 && radius < 40) {
+      return 9;
+    } else if (radius >= 40 && radius < 80) {
+      return 8;
+    } else if (radius >= 80 && radius < 160) {
+      return 7;
+    } else if (radius >= 160 && radius < 300) {
+      return 6;
     }
-    return zoomLevel;
+    return 5.5;
   }
 }
