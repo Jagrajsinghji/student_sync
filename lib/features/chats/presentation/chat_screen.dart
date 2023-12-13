@@ -51,7 +51,7 @@ class _ChatScreenState extends State<ChatScreen> {
       onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(80),
+          preferredSize: const Size.fromHeight(120),
           child: Padding(
             padding: const EdgeInsets.only(top: 50),
             child: SizedBox(

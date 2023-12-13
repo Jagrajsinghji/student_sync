@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -98,7 +99,7 @@ class ProfileService {
     return null;
   }
 
-  void followUser(UserInfo otherUser, UserInfo myInfo) async {
+  Future followUser(UserInfo otherUser, UserInfo myInfo) async {
     var res = await _firebaseDatabase
         .ref("${otherUser.id}/followers/")
         .runTransaction((data) {
@@ -160,5 +161,9 @@ class ProfileService {
     return _firebaseDatabase.ref("$myUserId/following/").onValue.map((event) =>
         (event.snapshot.value as List<Object?>)
             .any((element) => (element as Map)['userId'] == otherUserId));
+  }
+
+  Future<Response> sendNotification(Map payload) {
+    return _dio.client.post(APIEndpoints.sendNotification, data: payload);
   }
 }

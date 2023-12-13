@@ -145,7 +145,7 @@ class _GeneralPostState extends State<GeneralPost> {
         showHeartAnimation = true;
       });
     }
-    apiController.likePost(postId: widget.post.id).then((value) => setState(() {
+    apiController.likePost(post: widget.post).then((value) => setState(() {
           widget.post.isLiked = value;
         }));
     Timer(const Duration(seconds: 2), () {

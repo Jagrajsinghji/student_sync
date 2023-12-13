@@ -28,7 +28,7 @@ class _PeopleNearMeState extends State<PeopleNearMe> {
   }
 
   void getNearbyPeople() async {
-    apiController.getNearbyPeople(await locationController.getCurrentLocation(),
+    apiController.getNearbyPeople(locationController.getCurrentLocation(),
         locationController.getRadiusInMeters());
   }
 

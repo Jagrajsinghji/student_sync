@@ -191,14 +191,45 @@ class APIController {
   Future uploadPhoto({required File file, required PhotoType type}) =>
       _profileService.uploadPhoto(userId: _userId!, file: file, type: type);
 
-  void followUser(UserInfo otherUser, UserInfo myInfo) =>
-      _profileService.followUser(otherUser, myInfo);
+  void followUser(UserInfo otherUser, UserInfo myInfo) {
+    _profileService.followUser(otherUser, myInfo).then((value) =>
+        sendNotification(
+            title: "",
+            body: "${myInfo.name} started following you!",
+            token: otherUser.notificationToken,
+            imgUrl: myInfo.profileImage));
+  }
 
   void unFollowUser(String otherUserId, String myUserId) =>
       _profileService.unFollowUser(otherUserId, myUserId);
 
   Stream<bool> isFollowingStream(String myUserId, String otherUserId) =>
       _profileService.isFollowingStream(myUserId, otherUserId);
+
+  Future<Response> sendNotification(
+      {required String title,
+      required String body,
+      required String token,
+      required String? imgUrl}) async {
+    Map payload = {
+      "notification": {"title": title, "body": body},
+      if (imgUrl != null)
+        "android": {
+          "notification": {"imageUrl": imgUrl}
+        },
+      if (imgUrl != null)
+        "apns": {
+          "payload": {
+            "aps": {
+              "mutable-content": 1
+            }
+          },
+          "fcm_options": {"image": imgUrl}
+        },
+      "token": token,
+    };
+    return _profileService.sendNotification(payload);
+  }
 
   ///---------- Chat Service APIs -----------------///
 
@@ -209,9 +240,17 @@ class APIController {
       _chatService.getChatHistoryStream(chatId);
 
   Future<ChatInfo> sendMessageToUser(
-          ChatUserInfo sender, ChatUserInfo receiver, String message,
-          {String? chatId}) =>
-      _chatService.sendMessageToUser(sender, receiver, message);
+      ChatUserInfo sender, ChatUserInfo receiver, String message,
+      {String? chatId}) async {
+    var resp = await _chatService.sendMessageToUser(sender, receiver, message);
+    if (receiver.notificationToken == null) return resp;
+    sendNotification(
+        title: "${sender.username} sent you a message!",
+        body: message,
+        token: receiver.notificationToken!,
+        imgUrl: sender.userImage);
+    return resp;
+  }
 
   Future seenLastMessage(String chatId, String userId) =>
       _chatService.seenLastMessage(chatId, userId);
@@ -246,8 +285,21 @@ class APIController {
     return value;
   }
 
-  Future<bool> likePost({required String postId}) =>
-      _postService.likePost(userId: _userId!, postId: postId);
+  Future<bool> likePost({required Post post}) =>
+      _postService.likePost(userId: _userId!, postId: post.id).then((value) {
+        getUserInfo(userId: post.userId).then((userDetails) {
+          if (userDetails != null) {
+            sendNotification(
+                title: "",
+                body: "${_userInfo?.details.name} liked your post!",
+                token: userDetails.details.notificationToken,
+                imgUrl: post.postImg);
+          }
+
+          return userDetails;
+        });
+        return value;
+      });
 
   ///---------- Review Service APIs -----------------///
 
@@ -255,11 +307,11 @@ class APIController {
       _reviewService.getAllReviews(userId ?? _userId!);
 
   Future<Review?> createReview(
-      {required String userId,
+      {required UserInfo otherUserInfo,
       required int rating,
       required String comment}) async {
     var resp = await _reviewService.createReview(
-        userId: userId,
+        userId: otherUserInfo.id,
         reviewerUserId: _userId!,
         rating: rating,
         comment: comment);
@@ -268,8 +320,13 @@ class APIController {
         ...resp.data,
         "reviewe_name": _userInfo!.details.name,
         "reviewe_profile_img_name": _userInfo!.details.profileImage,
-        "userId": userId
+        "userId": otherUserInfo.id
       };
+      sendNotification(
+          title: "Review added by ${_userInfo!.details.name}",
+          body: comment,
+          token: otherUserInfo.notificationToken,
+          imgUrl: _userInfo!.details.profileImage);
       return Review.fromMap(data);
     }
     return null;

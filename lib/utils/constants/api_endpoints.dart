@@ -148,4 +148,15 @@ class APIEndpoints {
   ///     "radiusInMeters": "50000"
   /// }
   static const String getPeopleNearby = "/users/nearbyBasedOnUserSkills";
+
+  ///POST
+  ///body{
+  ///     // "token":"fM7aI_YpPEnks-9y-K7Z7x:APA91bE-qLDXZOvcxoT9lbnoaSzs3uQJSDEpsSBXSGaDKrXis4Bx6KcYs-Gi-iwVW5tCW1Z5HqI4X9CQwbkcXRNzQinnymeGbgbjWWfCXfquNa2Eimk2MyWRO2SkOyeOfPGL7ndYOVQl",
+  ///     "token": "cyLwY-ydRhySWctPCVnQTt:APA91bHspW2RCBSN1CPp9PzMkfFe-p9emmmPN_T3shVlCNlX0I7zGWnVA2_5dDRkpjVmYcy017x9p755R5ZFNSTrQFHCtqFizbE1cd4WoDpzfj6p-Z5g8vl9BQTwKy5O_sM7B3Y4u2TL",
+  ///     "notification": {
+  ///         "body": "body",
+  ///         "title": "title"
+  ///     }
+  ///
+  static const String sendNotification = "/sendNotification";
 }

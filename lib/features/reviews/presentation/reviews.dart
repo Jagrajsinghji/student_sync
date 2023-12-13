@@ -5,12 +5,14 @@ import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:student_sync/controller/api_controller.dart';
+import 'package:student_sync/features/profile/models/user_info.dart';
+import 'package:student_sync/features/profile/models/user_profile_details.dart';
 import 'package:student_sync/features/reviews/models/review.dart';
 
 class Reviews extends StatefulWidget {
-  const Reviews({super.key, required this.userId});
+  const Reviews({super.key, required this.userDetails});
 
-  final String userId;
+  final UserInfo userDetails;
 
   @override
   State<Reviews> createState() => _ReviewsState();
@@ -26,7 +28,7 @@ class _ReviewsState extends State<Reviews> {
 
   void getAllReviews() {
     apiController
-        .getAllReviews(userId: widget.userId)
+        .getAllReviews(userId: widget.userDetails.id)
         .then((value) => setState(() {
               allReviews
                 ..clear()
@@ -129,7 +131,7 @@ class _ReviewsState extends State<Reviews> {
                       },
                       reverse: true,
                     )),
-          if (widget.userId != apiController.getUserInfoSync().id)
+          if (widget.userDetails != apiController.getUserInfoSync().id)
             Padding(
               padding: const EdgeInsets.only(
                   left: 10.0, right: 10, bottom: 25, top: 0),
@@ -193,7 +195,7 @@ class _ReviewsState extends State<Reviews> {
                                           }
                                           Review? newReview =
                                               await apiController.createReview(
-                                                  userId: widget.userId,
+                                                  otherUserInfo: widget.userDetails,
                                                   rating: selectedStars,
                                                   comment: review);
                                           if (newReview != null) {

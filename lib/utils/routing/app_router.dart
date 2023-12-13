@@ -22,6 +22,7 @@ import 'package:student_sync/features/maps/presentation/pick_location_from_map.d
 import 'package:student_sync/features/onboarding/presentation/onboarding.dart';
 import 'package:student_sync/features/people/presentation/people_near_me.dart';
 import 'package:student_sync/features/profile/models/user_info.dart';
+import 'package:student_sync/features/profile/models/user_profile_details.dart';
 import 'package:student_sync/features/profile/presentation/edit_profile.dart';
 import 'package:student_sync/features/profile/presentation/profile.dart';
 import 'package:student_sync/features/profile/presentation/show_post_image.dart';
@@ -121,7 +122,7 @@ abstract class AppRouter {
         GoRoute(
             path: reviews,
             pageBuilder: (_, state) => buildPage(Reviews(
-                  userId: state.extra as String,
+                  userDetails: state.extra as UserInfo,
                 ))),
         GoRoute(
             path: notFound,

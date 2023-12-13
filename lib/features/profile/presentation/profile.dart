@@ -105,7 +105,7 @@ class _ProfileState extends State<Profile> {
                                     : GestureDetector(
                                         onTap: () {
                                           context.push(AppRouter.reviews,
-                                              extra: userProfile!.details.id);
+                                              extra: userProfile!.details);
                                         },
                                         child: SizedBox(
                                           width: 150,
@@ -134,7 +134,7 @@ class _ProfileState extends State<Profile> {
                                                 EdgeInsets.zero)),
                                         onPressed: () {
                                           context.push(AppRouter.reviews,
-                                              extra: widget.userId);
+                                              extra: userProfile!.details);
                                         },
                                         child: const Text("Add Review")),
                                   )
@@ -186,14 +186,18 @@ class _ProfileState extends State<Profile> {
                                       ChatUserInfo sender = ChatUserInfo(
                                           userId: myInfo.id,
                                           username: myInfo.name,
-                                          userImage: myInfo.profileImage ?? "");
+                                          userImage: myInfo.profileImage ?? "",
+                                          notificationToken:
+                                              myInfo.notificationToken);
 
                                       ChatUserInfo receiver = ChatUserInfo(
                                           userId: userProfile!.details.id,
                                           username: userProfile!.details.name,
                                           userImage: userProfile!
                                                   .details.profileImage ??
-                                              "");
+                                              "",
+                                          notificationToken: userProfile!
+                                              .details.notificationToken);
 
                                       ChatInfo info =
                                           await apiController.sendMessageToUser(

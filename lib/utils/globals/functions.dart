@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_sync/controller/api_controller.dart';
 import 'package:student_sync/controller/bottom_nav_controller.dart';
 import 'package:student_sync/controller/location_controller.dart';
+import 'package:student_sync/controller/notification_controller.dart';
 import 'package:student_sync/features/account/services/account_service.dart';
 import 'package:student_sync/features/account/services/skill_service.dart';
 import 'package:student_sync/features/channel/services/post_service.dart';
@@ -46,4 +47,11 @@ void initServiceLocator() async {
 
   get.registerLazySingleton(
       () => LocationController(profileService: profileService));
+}
+
+void initNotifications() {
+  NotificationController.init();
+  FirebaseMessaging.onMessage.listen((event) async {
+    await NotificationController.pushNotification(event);
+  });
 }
